@@ -1,26 +1,37 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { Component, Fragment } from 'react';
+import CssBaseline from '@material-ui/core/CssBaseline';
+import { withStyles } from '@material-ui/styles';
+import 'typeface-roboto';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+import AppRouter from './routers/AppRouter';
+
+const styles = theme => ({
+  '@global': {
+    'html, body, #root': {
+        height: '100%'
+    }
+  }
+});
+
+class App extends Component {
+
+  state = {
+    createDialogOpen: false
+  }
+
+  toggleCreateDialog = () => this.setState((prevState) => ({ createDialogOpen: !prevState.createDialogOpen}))
+
+  render(){
+    return (
+      <Fragment>
+        <CssBaseline>
+          <AppRouter 
+            toggleCreateDialog={this.toggleCreateDialog}
+          />
+        </CssBaseline>
+      </Fragment>
+    );
+  }
 }
 
-export default App;
+export default withStyles(styles)(App);
