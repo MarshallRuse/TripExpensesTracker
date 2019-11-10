@@ -1,74 +1,59 @@
-import React, { Component } from 'react';
+import React, { useState, useContext } from 'react';
 import { TextField, Button } from '@material-ui/core';
 
+import DialogContext from '../../context/DialogContext';
 
-class TripForm extends Component {
+const TripForm = () => {
 
-    state = {
-        title: '',
-    };
+    const { dialog } = useContext(DialogContext);
+    const [title, setTitle] = useState(dialog.editMode ? dialog.itemToEdit.title : '');
 
-    componentDidMount(){
-        const { trip } = this.props;
 
-        trip && this.setState(() => ({
-            ...trip
-        }));
-    };
-
-    componentDidUpdate(prevProps){
-        const { trip: prevTrip} = prevProps;
-        const { trip } = this.props;
-
-        if (prevTrip && prevTrip._id !== trip._id){
-            this.setState(() => ({
-                ...trip
-            }))
-        }
-    }
-
-    handleTitleChange = (event) => {
+    const handleTitleChange = (event) => {
         const title = event.target.value;
-        this.setState(() => ({
-            title
-        }));
+        setTitle(title);
     }
 
-    onSubmit = () => {
+    const onSubmit = () => {
 
-        this.props.onSubmit({
-            ...this.state
-        });
+        let tripToSubmit = {};
+        if (dialog.editMode){
+            tripToSubmit = {
+                ...dialog.itemToEdit,
+                title
+            }
+        } else {
+            tripToSubmit = {
+                title
+            }
+        }
 
-        this.setState(() => ({ 
-            title: ''
-        }));
+        dialog.editMode 
+        ? dialog.editItemFunction(tripToSubmit) 
+        : dialog.createItemFunction(tripToSubmit);
+
+        setTitle('');
     }
 
-    render() {
-
-        const { title } = this.state;
-
-        return (
-            <form>
-                <TextField
-                    label='Trip Title'
-                    value={title}
-                    onChange={this.handleTitleChange}
-                    margin='normal'
-                    fullWidth
-                />
-                <Button 
-                    color="primary" 
-                    variant='contained'
-                    onClick={this.onSubmit}
-                    disabled={!title}
-                >
-                    {this.props.trip ? 'Edit' : 'Create'}
-                </Button>
-            </form>
-        )
-    }
+    return (
+        <form>
+            <TextField
+                label='Trip Title'
+                value={title}
+                onChange={handleTitleChange}
+                margin='normal'
+                fullWidth
+            />
+            <Button 
+                color="primary" 
+                variant='contained'
+                onClick={onSubmit}
+                disabled={!title}
+            >
+                {dialog.editMode ? 'Edit' : 'Create'}
+            </Button>
+        </form>
+    )
 };
 
 export default TripForm;

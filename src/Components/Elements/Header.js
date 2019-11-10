@@ -1,15 +1,10 @@
 import React, { Fragment} from 'react';
 import { withStyles } from '@material-ui/styles';
-import { AppBar, Toolbar, IconButton, Typography, Button, Breadcrumbs } from '@material-ui/core';
-import { Menu, NavigateNext } from '@material-ui/icons'; 
+import { AppBar, Toolbar, IconButton, Typography, Button } from '@material-ui/core';
+import { Menu } from '@material-ui/icons'; 
+import BreadcrumbNav from './BreadcrumbNav';
 
 const styles = {
-    breadcrumbs: {
-        display: 'flex',
-        justifyContent: 'center',
-        paddingTop: '10px',
-        paddingBottom: '10px'
-    },
     flex: {
         flex: 1
     }
@@ -28,9 +23,7 @@ const Header = ({ classes }) => (
                 <Button color="inherit">Login</Button>
             </Toolbar>
         </AppBar>
-        <Breadcrumbs separator={<NavigateNext fontSize="small" />} aria-label="breadcrumb" className={classes.breadcrumbs}>
-            <Typography color="textPrimary">Trips</Typography>
-        </Breadcrumbs>
+        <BreadcrumbNav />
     </Fragment>
 );
 

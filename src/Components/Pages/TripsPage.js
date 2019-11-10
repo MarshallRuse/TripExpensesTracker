@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from 'react';
+import React, { Fragment, useState, useContext, useEffect } from 'react';
 import { withStyles } from '@material-ui/styles';
 import { 
     Grid, 
@@ -7,7 +7,9 @@ import {
  } from '@material-ui/core';
 
 import TripCard from '../Elements/TripCard';
-import TripDialog from '../Elements/TripDialog';
+
+import PageContext from '../../context/PageContext';
+import DialogContext from '../../context/DialogContext';
 
 
 const styles = theme => ({
@@ -36,167 +38,158 @@ const styles = theme => ({
     }
 })
 
-class TripsPage extends Component {
+const TripsPage = ({ classes }) => {
 
-    state = {
-        trips: [],
-        tripToEdit: {},
-        tripEditMode: false,
-        tripDialogOpen: false,
-    }
-    
-    async componentDidMount(){
-        this.loadTrips();
-    }
+    const { page, pageDispatch } = useContext(PageContext);
+    const { dialog, dialogDispatch } = useContext(DialogContext);
 
-    // FRONTEND OPERATIONS
-        // Trips
+    const [trips, setTrips] = useState([]);
 
-    selectTripToEdit = (tripID) => {
-        this.setState((prevState) => ({
-            tripToEdit: prevState.trips.find((trip) => trip._id === tripID)
-        }))
+    // On load, set the current page to trips for breadcrumbs and FormDialog to use
+    if (page.currentPage !== 'TRIPS'){
+        pageDispatch({ type: 'SET_CURRENT_PAGE', currentPage: 'TRIPS'});
+        dialogDispatch({ 
+            type: 'SET_CREATE_ITEM_FUNCTION', 
+            createItemFunction: handleTripFormSubmitCreate
+        });
+        dialogDispatch({
+            type: 'SET_EDIT_ITEM_FUNCTION',
+            editItemFunction: handleTripFormSubmitEdit
+        })
     }
-    
-    // Open and Close Trip Dialog functions.
-    // Note, was originally simply a toggle function, but due to complexity
-    // of needing to add selected trip on edit open, and clear selected trips on close,
-    // was seperated into 2 functions.
-    openTripDialog = () => {
-        this.setState(() => ({ tripDialogOpen: true }));
-    }
+    useEffect(() => {
+        return () => {
+            console.log('Cleaned up');
+        }
+    }, [])
 
-    closeTripDialog = () => {
-        this.setState(() => ({ 
-            tripDialogOpen: false,
-            tripEditMode: false,
-            tripToEdit: {}
-        }));
-    }
+    // Watch for changes to list of Trips
+    useEffect(() => {
+        async function loadTripsOnUpdate(){
+            const loadedTrips = await loadTrips();
+            setTrips(loadedTrips);
+        }
+        loadTripsOnUpdate();
+    }, [trips]);
+
 
     // BACKEND-FACING OPERATIONS
         // Trips
-        loadTrips = async () => {
-            try {
-                const responseObj = await fetch('/get_trips');
-                const trips = await responseObj.json();
-                this.setState(() => ({
-                    trips
-                }))
-            } catch(err){
-                console.log('Error creating trip, ', err);
-            }
+    const loadTrips = async () => {
+        try {
+            const responseObj = await fetch('/get_trips');
+            const trips = await responseObj.json();
+            return trips;
+        } catch(err){
+            console.log('Error creating trip, ', err);
         }
-    
-        editTrip = (tripID) => {
-            this.setState((prevState) => ({
-                tripToEdit: prevState.trips.find((trip) => trip._id === tripID),
-                tripEditMode: true,
-                tripDialogOpen: true
-            }))
-        }
-    
-        deleteTrip = async (tripID) => {
-            try {
-                const responseObj = await fetch(`/delete_trip/${tripID}`, {
-                    method: 'DELETE'
-                });
-    
-                const deletedTrip = await responseObj.json();
-    
-                this.setState((prevState) => ({
-                    trips: prevState.trips.filter((trip) => trip._id !== deletedTrip._id)
-                }));
-            } catch (err) {
-                console.log('Error deleting trip', err);
-            }
-        }
-    
-        handleTripFormSubmitCreate = async (trip) => {
-            this.closeTripDialog();
-    
-            try {
-                const responseObj = await fetch('/create_trip', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(trip)
-                });
-                const newTrip = await responseObj.json();
-    
-                this.setState((prevState) => ({
-                    trips: [
-                        ...prevState.trips,
-                        newTrip
-                    ]
-                }));
-    
-            } catch(err){
-                console.log('Error creating trip, ', err);
-            }
-        }
-    
-        handleTripFormSubmitEdit = async (trip) => {
-            this.closeTripDialog();
-    
-            try {
-                const responseObj = await fetch(`/update_trip/${trip._id}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(trip)
-                });
-                const newTrip = await responseObj.json();
-    
-                this.setState((prevState) => ({
-                    trips: [
-                        ...prevState.trips.filter((trip) => trip._id !== newTrip._id),
-                        newTrip
-                    ]
-                }));
-    
-            } catch(err){
-                console.log('Error creating trip, ', err);
-            }
-        }
+    }
 
-    render(){
+    const editTrip = (tripID) => {
+        const selectedTripToEdit = trips.find((trip) => trip._id === tripID);
+        dialogDispatch({ type: 'SET_EDIT_MODE_TRUE' });
+        dialogDispatch({ type: 'SET_ITEM_TO_EDIT', itemToEdit: selectedTripToEdit });
+        dialogDispatch({ type: 'OPEN' });
+    }
 
-        const { classes } = this.props;
-        return (
-            <Fragment>
-                <Grid container direction='column' alignItems='center' justify='center' className={classes.centerContent}>
-                    <Grid container direction='row' justify='center' alignItems='center' className={classes.cardList}>
-                        { this.state.trips 
-                            ?   this.state.trips.map((trip, index) => (
-                                    <Grid item xs={10} key={index}>
-                                        <TripCard trip={trip} editTrip={this.editTrip} deleteTrip={this.deleteTrip} />
-                                    </Grid>))
-                            
-                            :   <Grid item xs={10}>
-                                    <Paper className={classes.paper}>
-                                        <Typography variant='subtitle1' align='center' style={{color: '#7b7b7b'}}>
-                                            Add your first trip!
-                                        </Typography>
-                                    </Paper>
-                                </Grid>
-                        }
-                    </Grid>
+    const deleteTrip = async (tripID) => {
+        try {
+            const responseObj = await fetch(`/delete_trip/${tripID}`, {
+                method: 'DELETE'
+            });
+
+            const deletedTrip = await responseObj.json();
+            setTrips(trips.filter((trip) => trip._id !== deletedTrip._id));
+
+        } catch (err) {
+            console.log('Error deleting trip', err);
+        }
+    }
+
+    async function handleTripFormSubmitCreate(trip){
+        dialogDispatch({ type: 'CLOSE' });
+
+        try {
+            const responseObj = await fetch('/create_trip', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(trip)
+            });
+            const newTrip = await responseObj.json();
+            setTrips([ ...trips, newTrip]);
+
+        } catch(err){
+            console.log('Error creating trip, ', err);
+        }
+    }
+
+    async function handleTripFormSubmitEdit(trip){
+        dialogDispatch({ type: 'CLOSE' });
+        dialogDispatch({ type: 'SET_EDIT_MODE_FALSE' });
+        dialogDispatch({ type: 'SET_ITEM_TO_EDIT', itemToEdit: undefined });
+
+        try {
+            const responseObj = await fetch(`/update_trip/${trip._id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(trip)
+            });
+
+            const newTrip = await responseObj.json();
+
+            // ******
+            // This next part doesn't work yet without another call to loadTrips in 
+            // the useEffect watching for a change to 'trips'. So the code below doesn't strictly
+            // do anything yet because the trips array is overwritten by that call.  This function 
+            // doesnt have access to the state, because its actually being placed on the dialogContext before
+            // the state is initialized.  The trips are outside of the closure of the function being called in 
+            // TripForm.  I hope to find a way to remedy this without needing to call for the entire list of trips
+            // again. 
+            // *******
+            // Replace in same position, so edited trip doesn't go to end of array
+            const tripToReplaceIndex = trips.findIndex((trip) => trip._id === newTrip._id );
+            console.log('Trip to replace index, ', tripToReplaceIndex)
+            let newTrips = [...trips];
+            newTrips[tripToReplaceIndex] = newTrip;
+
+            // Save to state
+            setTrips(newTrips);
+
+        } catch(err){
+            console.log('Error creating trip, ', err);
+        }
+    }
+
+    return (
+        <Fragment>
+            <Grid container direction='column' alignItems='center' justify='center' className={classes.centerContent}>
+                <Grid container direction='row' justify='center' alignItems='center' className={classes.cardList}>
+                    { trips.length > 0 
+                        ?   trips.map((trip, index) => (
+                                <Grid item xs={10} key={index}>
+                                    <TripCard trip={trip} editTrip={editTrip} deleteTrip={deleteTrip} />
+                                </Grid>))
+                        
+                        :   <Grid item xs={10}>
+                                <Paper className={classes.paper}>
+                                    <Typography variant='subtitle1' align='center' style={{color: '#7b7b7b'}}>
+                                        Add your first trip!
+                                    </Typography>
+                                </Paper>
+                            </Grid>
+                    }
                 </Grid>
-                <TripDialog 
-                    open={this.state.tripDialogOpen}
-                    trip={this.state.tripToEdit} 
-                    closeTripDialog={this.closeTripDialog}
-                    onSubmit={this.state.tripEditMode ? this.handleTripFormSubmitEdit : this.handleTripFormSubmitCreate} 
-                />
-            </Fragment>
-            
+            </Grid>
+        </Fragment>
+        
         )
     }
     
-}
+
 
     
 

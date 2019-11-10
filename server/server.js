@@ -22,9 +22,11 @@ app.use(express.urlencoded({
 }));
 
 const tripRouter = require('./routes/trips');
+const expenseRouter = require('./routes/expenses');
 
 // Setup routes to use
 app.use(tripRouter);
+app.use(expenseRouter);
 
 app.get('*', (req, res) => {
     res.sendFile(path.join(publicDirectoryPath, 'index.html'));

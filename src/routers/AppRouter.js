@@ -1,29 +1,54 @@
-import React, { Component, Fragment } from 'react';
+import React, { Fragment, useReducer } from 'react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
 import Header from '../Components/Elements/Header';
 import Footer from '../Components/Elements/Footer';
 import TripsPage from '../Components/Pages/TripsPage';
 import ExpensesPage from '../Components/Pages/ExpensesPage';
+import FormDialog from '../Components/Elements/FormDialog';
 
-class AppRouter extends Component{
+import PageContext from '../context/PageContext';
+import pageReducer from '../reducers/pageReducer';
 
+import DialogContext from '../context/DialogContext';
+import dialogReducer from '../reducers/dialogReducer';
 
-    render(){
-        return (
+const AppRouter = () => {
+
+    const [page, pageDispatch] = useReducer(pageReducer, {});
+    const [dialog, dialogDispatch] = useReducer(dialogReducer, { 
+        dialogOpen: false,
+        editMode: false,
+        selectionToEdit: {}
+        });
+
+    const closeDialog = () => {
+        dialogDispatch({ type: 'CLOSE'});
+        dialogDispatch({ type: 'SET_EDIT_MODE_FALSE' });
+        dialogDispatch({ type: 'SET_ITEM_TO_EDIT', itemToEdit: undefined });
+    }
+
+    return (
         <BrowserRouter>
             <Fragment>
-                <Header />
-                    <Switch>
-                        <Route path='/' component={TripsPage} exact={true} />
-                        <Route path='/:trip/expenses' component={ExpensesPage} />
-                    </Switch>
-                <Footer 
-                    openDialog={this.openTripDialog}
-                />
+                <PageContext.Provider value={{ page, pageDispatch }}>
+                    <DialogContext.Provider value={{ dialog, dialogDispatch }}>
+
+                        <Header />
+                            <Switch>
+                                <Route path='/' component={TripsPage} exact={true} />
+                                <Route path='/:trip/expenses' component={ExpensesPage} />
+                            </Switch>
+                        <Footer />
+                        <FormDialog 
+                            open={dialog.dialogOpen}
+                            closeDialog={closeDialog}
+                        />
+
+                    </DialogContext.Provider>
+                </PageContext.Provider>
             </Fragment>
         </BrowserRouter>)
-    }
 
 };
     
