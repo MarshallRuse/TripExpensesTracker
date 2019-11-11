@@ -67,10 +67,6 @@ class ExpenseCard extends Component {
 
         return (
             
-                <ButtonBase 
-                    focusRipple
-                    style={{width: '100%'}}
-                >
                 <Card className={classes.card}>
                 
                     <CardContent>
@@ -105,7 +101,6 @@ class ExpenseCard extends Component {
                         </Menu>
                     </CardActions>
                 </Card>
-                </ButtonBase>
         )
     }
 }

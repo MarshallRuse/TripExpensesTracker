@@ -6,7 +6,7 @@ const Expense = require('../../db/models/expense');
 
 // C 
 router.post('/create_expense', async (req, res) => {
-    let expenseObj = { ...req.body };
+    let expenseObj = { ...req.body };    
 
     const expense = new Expense({
         ...expenseObj,
@@ -34,9 +34,9 @@ router.get('/get_expenses', async (req, res) => {
 // U
 router.patch('/update_expense/:expenseID', async (req, res) => {
 
-    const permittedEdits = ['title', 'category', 'description'];
+    const permittedEdits = ['title', 'category', 'description', 'cost', 'paymentMethod', 'dateTime', 'location', 'trip'];
     const filteredFields = Object.keys(req.body).filter((field) => permittedEdits.includes(field));
-
+    console.log('req body is: ', req.body);
     try {
         const expense = await Expense.findById(req.params.expenseID);
         filteredFields.forEach((field) => {

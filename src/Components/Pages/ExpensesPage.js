@@ -29,8 +29,7 @@ const styles = theme => ({
     }
 })
 
-const ExpensesPage = ({ classes }) => {
-
+const ExpensesPage = ({ classes, match }) => {
 
     const { page, pageDispatch } = useContext(PageContext);
     const { dialog, dialogDispatch } = useContext(DialogContext);
@@ -41,6 +40,7 @@ const ExpensesPage = ({ classes }) => {
     // On load, set the current page to trips for breadcrumbs and FormDialog to use
     if (page.currentPage !== 'EXPENSES'){
         pageDispatch({ type: 'SET_CURRENT_PAGE', currentPage: 'EXPENSES'});
+        pageDispatch({ type: 'SET_TRIP_ID', tripID: match.params.trip})
         dialogDispatch({ 
             type: 'SET_CREATE_ITEM_FUNCTION', 
             createItemFunction: handleExpenseFormSubmitCreate
@@ -55,6 +55,26 @@ const ExpensesPage = ({ classes }) => {
             console.log('Cleaned up');
         }
     }, []);
+
+    useEffect(() => {
+        async function loadExpensesOnUpdate(){
+            const loadedExpenses = await loadExpenses();
+            setExpenses(loadedExpenses);
+        }
+        loadExpensesOnUpdate();
+    }, [expenses]);
+
+    const loadExpenses = async () => {
+        try {
+            const responseObj = await fetch('/get_expenses');
+            const expenses = await responseObj.json();
+            return expenses;
+        } catch(err){
+            console.log('Error creating trip, ', err);
+        }
+    }
+
+
 
     const editExpense = (expenseID) => {
         const selectedExpenseToEdit = expenses.find((trip) => trip._id === expenseID);
@@ -103,7 +123,7 @@ const ExpensesPage = ({ classes }) => {
         dialogDispatch({ type: 'SET_ITEM_TO_EDIT', itemToEdit: undefined });
 
         try {
-            const responseObj = await fetch(`/update_trip/${expense._id}`, {
+            const responseObj = await fetch(`/update_expense/${expense._id}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json'
@@ -146,7 +166,7 @@ const ExpensesPage = ({ classes }) => {
                     { expenses.length > 0
                         ?   expenses.map((expense, index) => (
                             <Grid item xs={10} key={index}>
-                                <ExpenseCard expense={expense} editTrip={editExpense} deleteTrip={deleteExpense} />
+                                <ExpenseCard expense={expense} editExpense={editExpense} deleteExpense={deleteExpense} />
                             </Grid>)) 
                         :   <Grid item xs={10}>
                                 <Paper className={classes.paper}>

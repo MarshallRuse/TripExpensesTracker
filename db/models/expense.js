@@ -15,11 +15,11 @@ const expenseSchema = mongoose.Schema({
         required: false,
         trim: true
     },
-    category: [{
+    category: {
         type: String,
         required: true,
         trim: true
-    }],
+    },
     cost: {
         amount: {
             type: Number,
@@ -55,7 +55,7 @@ const expenseSchema = mongoose.Schema({
         },
         country: {
             type: String,
-            required: true,
+            required: false,
             trim: true
         }
     },

@@ -1,6 +1,10 @@
 import React, { useContext } from 'react';
 
-import { Dialog, DialogContent, DialogContentText, DialogTitle} from '@material-ui/core';
+import { Dialog, DialogContent, DialogTitle} from '@material-ui/core';
+import { MuiPickersUtilsProvider } from '@material-ui/pickers';
+import MomentUtils from '@date-io/moment';
+
+
 import TripForm from './TripForm';
 import ExpenseForm from './ExpenseForm';
 
@@ -18,9 +22,7 @@ const FormDialog = ({ open, closeDialog }) => {
         <Dialog open={ open } onClose={ closeDialog }>
             <DialogTitle id="form-dialog-title">{dialog.editMode ? `Edit your ${pageType}`: `Create a New ${pageType}`}</DialogTitle>
             <DialogContent>
-                <DialogContentText>
-                    Fill out the form below.
-                </DialogContentText>
+                <MuiPickersUtilsProvider utils={MomentUtils}>
                 { page.currentPage === 'TRIP' 
                     ?   <TripForm 
                             trip={dialog.itemToEdit} 
@@ -31,7 +33,7 @@ const FormDialog = ({ open, closeDialog }) => {
                             onSubmit={dialog.editMode ? dialog.editItemFunction : dialog.createItemFunction}
                         />
                 }
-                
+                </MuiPickersUtilsProvider>
             </DialogContent>
         </Dialog>)
 }

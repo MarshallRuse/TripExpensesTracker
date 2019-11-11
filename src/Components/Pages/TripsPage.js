@@ -38,8 +38,7 @@ const styles = theme => ({
     }
 })
 
-const TripsPage = ({ classes }) => {
-
+const TripsPage = ({ classes, ...other }) => {
     const { page, pageDispatch } = useContext(PageContext);
     const { dialog, dialogDispatch } = useContext(DialogContext);
 
