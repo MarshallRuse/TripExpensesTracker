@@ -58,6 +58,24 @@ router.patch('/update_trip/:tripID', async (req, res) => {
     }
 });
 
+router.patch('/update_trip/:tripID/add_category', async (req, res) => {
+
+    const newCategory = req.body.newCategory;
+
+    try {
+        const trip = await Trip.findById(req.params.tripID);
+
+        if (newCategory){
+            // Find categories in here
+        }
+        
+        await trip.save();
+        res.status(200).json(trip);
+    } catch (err) {
+        res.status(400).send(err);
+    }
+});
+
 // D
 router.delete('/delete_trip/:tripID', async (req, res) => {
     try {

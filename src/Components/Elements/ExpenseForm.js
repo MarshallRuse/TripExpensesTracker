@@ -2,6 +2,9 @@ import React, { useState, useContext } from 'react';
 import { withStyles } from '@material-ui/styles';
 import { 
     Button, 
+    Dialog,
+    DialogContent,
+    DialogTitle,
     FormControl, 
     InputLabel, 
     MenuItem, 
@@ -10,7 +13,7 @@ import {
     Typography
 } from '@material-ui/core';
 import { DateTimePicker } from "@material-ui/pickers";
-import { Cancel, CheckCircle } from '@material-ui/icons';
+import { Add, Cancel, CheckCircle } from '@material-ui/icons';
 
 import LocationAutocomplete from './LocationAutocomplete';
 import DialogContext from '../../context/DialogContext';
@@ -22,6 +25,10 @@ const categories = ['Food', 'Beer', 'Transport', 'Activity', 'Misc.'];
 const paymentMethods = ['Cash', 'Debit', 'Credit - Visa', 'Credit - Mastercard', 'Credit - AmEx', 'Credit - Other', 'Cheque'];
 
 const styles = theme => ({
+    actionMenuItem: {
+        backgroundColor: '#fafafa',
+        color: 'blue'
+    },
     input: {
         marginTop: '10px',
         marginBottom: '20px'
@@ -50,6 +57,8 @@ const ExpenseForm = ({ classes, ...other }) => {
     const [business, setBusiness] = useState('');
     const [city, setCity] = useState('');
     const [country, setCountry] = useState('');
+    const [newCategory, setNewCategory] = useState('');
+    const [newCategoryDialogOpen, setNewCategoryDialogOpen] = useState(false);
 
     const handleTitleChange = (event) => {
         const title = event.target.value;
@@ -170,7 +179,39 @@ const ExpenseForm = ({ classes, ...other }) => {
         setDescription('');
     }
 
+    const openAddCategoryDialog = () => {
+        setNewCategoryDialogOpen(true);
+    }
+
+    const handleNewCategoryChange = (event) => {
+        const newCat = event.target.value;
+        setNewCategory(newCat);
+    }
+
+    const onAddCategory = async () => {
+        try {
+
+            const catObj = {
+                newCategory
+            };
+
+            const response = await fetch(`/update_trip/${page.tripID}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(catObj)
+            });
+            const responseObj = await response.json();
+            
+
+        } catch(err){
+            console.log('Error adding category,', err)
+        }
+    }
+
     return (
+        <>
         <form>
             <Typography variant='body2' align='center' gutterBottom className={classes.sectionTitle}>
                 <strong>Expense Info</strong>
@@ -211,6 +252,15 @@ const ExpenseForm = ({ classes, ...other }) => {
                             key={category}
                         >{category}</MenuItem>
                     )}
+                    <MenuItem
+                        key={'ADD_CATEGORY'}
+                        value={''}
+                        className={classes.actionMenuItem}
+                        onClick={openAddCategoryDialog}
+                    >
+                        Add Category 
+                        <Add />
+                    </MenuItem>
                 </Select>
             </FormControl>
             <br />
@@ -322,7 +372,43 @@ const ExpenseForm = ({ classes, ...other }) => {
                 </Button>
             </div>
         </form>
-    )
+        <Dialog 
+            open={ newCategoryDialogOpen } 
+            onClose={() => setNewCategoryDialogOpen(false)}
+        >
+            <DialogTitle id="form-dialog-title">Add a new Expense Category</DialogTitle>
+            <DialogContent>
+                <TextField 
+                    label='Expense Category'
+                    value={newCategory}
+                    onChange={handleNewCategoryChange}
+                    margin='normal'
+                    className={classes.input}
+                    fullWidth
+                />
+                <br />
+                <div className={[classes.input, classes.spaceApart].join(' ')}>
+                    <Button 
+                        color="primary" 
+                        variant='contained'
+                        onClick={onAddCategory}
+                    >
+                        <CheckCircle style={{marginRight: '5px'}} fontSize='small' />
+                        Add
+                    </Button>
+                    <Button 
+                        color="secondary" 
+                        variant='contained'
+                        onClick={() => setNewCategoryDialogOpen(false)}
+                    >
+                        <Cancel style={{marginRight: '5px'}} fontSize='small' />
+                        Cancel
+                    </Button>
+                </div>
+            </DialogContent>
+        </Dialog>
+        </>
+        )
 };
 
 export default withStyles(styles)(ExpenseForm);

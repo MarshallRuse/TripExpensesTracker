@@ -108,6 +108,19 @@ const LocationAutocomplete = ({ classes }) => {
     const handleOptionClicked = (option) => {
         console.log('Autocomplete closeeeeddd', option);
         setInputValue(option.description);
+
+        const detailsService = new window.google.maps.places.PlaceDetailsRequest();
+        detailsService.getDetails({
+            placeId: option.placeId,
+            fields: ['address_component']
+          }, (results, status) => {
+            if (status == window.google.maps.places.PlacesServiceStatus.OK) {
+                console.log('SUCCESS!!, Results: ', results);
+              }
+              else {
+                  console.log('FAIL!!!!!')
+              }
+          })
     }
 
     return (
