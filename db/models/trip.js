@@ -8,6 +8,12 @@ const tripSchema = mongoose.Schema({
         required: true,
         trim: true
     },
+    preferredCurrency: {
+        type: String,
+        required: true,
+        trim: true,
+        default: 'CAD'
+    },
     owner: [{
         // type: mongoose.Schema.Types.ObjectId,
         // required: true,

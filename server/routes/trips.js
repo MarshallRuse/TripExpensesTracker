@@ -31,10 +31,19 @@ router.get('/get_trips', async (req, res) => {
     }
 });
 
+router.get('/get_trip/:tripID', async (req, res) => {
+    try {
+        const trip = await Trip.findById(req.params.tripID);
+        res.status(200).json(trip);
+    } catch (err){
+        res.status(400).send(err);
+    }
+})
+
 // U
 router.patch('/update_trip/:tripID', async (req, res) => {
 
-    const permittedEdits = ['title'];
+    const permittedEdits = ['title', 'preferredCurrency'];
     const filteredFields = Object.keys(req.body).filter((field) => permittedEdits.includes(field));
 
     try {

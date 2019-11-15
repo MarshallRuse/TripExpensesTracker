@@ -30,6 +30,14 @@ const expenseSchema = mongoose.Schema({
             type: String,
             required: true,
             default: 'CAD'
+        },
+        inEUR: {
+            type: Number,
+            required: true,
+        },
+        rateToEUR: {
+            type: Number,
+            required: true
         }
     },
     paymentMethod: {

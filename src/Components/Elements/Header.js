@@ -1,30 +1,62 @@
-import React, { Fragment} from 'react';
+import React, { Fragment, useContext, useEffect, useState } from 'react';
 import { withStyles } from '@material-ui/styles';
-import { AppBar, Toolbar, IconButton, Typography, Button } from '@material-ui/core';
+import { AppBar, Toolbar, IconButton, Typography, Button, Paper } from '@material-ui/core';
 import { Menu } from '@material-ui/icons'; 
-import BreadcrumbNav from './BreadcrumbNav';
 
-const styles = {
+
+import BreadcrumbNav from './BreadcrumbNav';
+import PageContext from '../../context/PageContext';
+
+
+const styles = theme => ({
     flex: {
         flex: 1
-    }
-}
+    },
+    title: {
+        backgroundColor: '#fafafa',
+        marginBottom: '15px',
+        paddingBottom: '10px',
+        position: 'fixed',
+        width: '100%'
+    },
+    toolbar: theme.mixins.toolbar
+})
 
-const Header = ({ classes }) => (
-    <Fragment>
-        <AppBar position="static">
-            <Toolbar>
-                <IconButton edge="start" color="inherit" aria-label="menu">
-                    <Menu />
-                </IconButton>
-                <Typography variant="h5" className={classes.flex}>
-                    Trip Tracker
-                </Typography>
-                <Button color="inherit">Login</Button>
-            </Toolbar>
-        </AppBar>
-        <BreadcrumbNav />
-    </Fragment>
-);
+const Header = ({ classes }) => {
+
+    const { page } = useContext(PageContext);
+    const [trip, setTrip] = useState({});
+
+    useEffect(() => {
+        if (page.tripID){
+            async function getTripOnPageLoad(){
+                const response = await fetch(`/get_trip/${page.tripID}`);
+                const trip = await response.json();
+                setTrip(trip);
+            }
+            getTripOnPageLoad();
+        } else {
+            setTrip({});
+        }
+    }, [page.tripID])
+    
+    return (
+        <Fragment>
+            <AppBar position="fixed">
+                <Toolbar>
+                    <Typography variant="h5" className={classes.flex}>
+                        {page.tripID 
+                            ?   trip.title
+                            :   'Your Trips'
+                        }
+                    </Typography>
+                </Toolbar>
+                
+            </AppBar>
+            <div className={classes.toolbar} />
+            <BreadcrumbNav />          
+        </Fragment>
+    );
+}
 
 export default withStyles(styles)(Header);

@@ -7,6 +7,7 @@ const Expense = require('../../db/models/expense');
 // C 
 router.post('/create_expense', async (req, res) => {
     let expenseObj = { ...req.body };    
+    console.log('Expense Obj: ', expenseObj);
 
     const expense = new Expense({
         ...expenseObj,
@@ -22,9 +23,9 @@ router.post('/create_expense', async (req, res) => {
 });
 
 // R
-router.get('/get_expenses', async (req, res) => {
+router.get('/get_expenses/:tripID', async (req, res) => {
     try {
-        const expenses = await Expense.find();
+        const expenses = await Expense.find({ trip: req.params.tripID});
         res.status(200).json(expenses);
     } catch (err){
         res.status(400).send(err);

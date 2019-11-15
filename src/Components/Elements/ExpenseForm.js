@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { withStyles } from '@material-ui/styles';
 import { 
     Button, 
@@ -6,10 +6,13 @@ import {
     InputLabel, 
     MenuItem, 
     Select, 
-    TextField 
+    TextField, 
+    Typography
 } from '@material-ui/core';
 import { DateTimePicker } from "@material-ui/pickers";
+import { Cancel, CheckCircle } from '@material-ui/icons';
 
+import LocationAutocomplete from './LocationAutocomplete';
 import DialogContext from '../../context/DialogContext';
 import PageContext from '../../context/PageContext';
 
@@ -21,12 +24,20 @@ const paymentMethods = ['Cash', 'Debit', 'Credit - Visa', 'Credit - Mastercard',
 const styles = theme => ({
     input: {
         marginTop: '10px',
-        marginBottom: '10px'
+        marginBottom: '20px'
+    },
+    sectionTitle: {
+        paddingBottom: '10px',
+        paddingTop: '10px'
+    },
+    spaceApart: {
+        display: 'flex',
+        justifyContent: 'space-around'
     }
-})
+});
 
 const ExpenseForm = ({ classes, ...other }) => {
-    const { dialog } = useContext(DialogContext);
+    const { dialog, dialogDispatch } = useContext(DialogContext);
     const { page } = useContext(PageContext);
 
     const [title, setTitle] = useState(dialog.editMode ? dialog.itemToEdit.title : '');
@@ -36,6 +47,9 @@ const ExpenseForm = ({ classes, ...other }) => {
     const [currency, setCurrency] = useState(dialog.editMode ? dialog.itemToEdit.cost.currency : 'CAD');
     const [paymentMethod, setPaymentMethod] = useState('Cash');
     const [selectedDateTime, setDateTime] = useState(new Date());
+    const [business, setBusiness] = useState('');
+    const [city, setCity] = useState('');
+    const [country, setCountry] = useState('');
 
     const handleTitleChange = (event) => {
         const title = event.target.value;
@@ -69,9 +83,33 @@ const ExpenseForm = ({ classes, ...other }) => {
         setDateTime(thing);
     }
 
+    const handleBusinessChange = (event) => {
+        const business = event.target.value;
+        setBusiness(business);
+    }
+
+    const handleCityChange = (event) => {
+        const city = event.target.value;
+        setCity(city);
+    }
+
+    const handleCountryChange = (event) => {
+        const country = event.target.value;
+        setCountry(country);
+    }
+
     const handleDescriptionChange = (event) => {
         const description = event.target.value;
         setDescription(description);
+    }
+
+    const handleCancel = (event) => {
+        dialogDispatch({ type: 'CLOSE' });
+
+        setTitle('');
+        setCost('');
+        setCategory('');
+        setDescription('');
     }
 
     const onSubmit = () => {
@@ -134,6 +172,9 @@ const ExpenseForm = ({ classes, ...other }) => {
 
     return (
         <form>
+            <Typography variant='body2' align='center' gutterBottom className={classes.sectionTitle}>
+                <strong>Expense Info</strong>
+            </Typography>
             <TextField
                 label='Expense Title *'
                 value={title}
@@ -173,7 +214,7 @@ const ExpenseForm = ({ classes, ...other }) => {
                 </Select>
             </FormControl>
             <br />
-            <FormControl>
+            <FormControl fullWidth>
                 <InputLabel htmlFor='currency'>Currency *</InputLabel>
                 <Select
                     value={currency}
@@ -205,6 +246,20 @@ const ExpenseForm = ({ classes, ...other }) => {
                 </Select>
             </FormControl>
             <br />
+            <TextField
+                label='Description'
+                multiline
+                rows="2"
+                value={description}
+                onChange={handleDescriptionChange}
+                margin='normal'
+                className={classes.input}
+                fullWidth
+            />
+            <br />
+            <Typography variant='body2' align='center' gutterBottom className={classes.sectionTitle}>
+                <strong>Date & Time</strong>
+            </Typography>
             <DateTimePicker 
                 label='Date and Time'
                 value={selectedDateTime} 
@@ -214,26 +269,58 @@ const ExpenseForm = ({ classes, ...other }) => {
                 className={classes.input}
                 fullWidth
             />
-    
+            <br />
+            <Typography variant='body2' align='center' gutterBottom className={classes.sectionTitle}>
+                <strong>Location</strong>
+            </Typography>
+            <LocationAutocomplete />
+            <br />
             <TextField
-                label='Description'
-                multiline
-                rows="4"
-                value={description}
-                onChange={handleDescriptionChange}
+                label='Business'
+                value={business}
+                onChange={handleBusinessChange}
                 margin='normal'
                 className={classes.input}
                 fullWidth
             />
-            <Button 
-                color="primary" 
-                variant='contained'
-                onClick={onSubmit}
+            <br />
+            <TextField
+                label='City *'
+                value={city}
+                onChange={handleCityChange}
+                margin='normal'
                 className={classes.input}
-                disabled={!title && !cost && !category && !selectedDateTime}
-            >
-                {dialog.editMode ? 'Edit' : 'Create'}
-            </Button>
+                fullWidth
+            />
+            <br />
+            <TextField
+                label='Country *'
+                value={country}
+                onChange={handleCountryChange}
+                margin='normal'
+                className={classes.input}
+                fullWidth
+            />
+            <br />
+            <div className={[classes.input, classes.spaceApart].join(' ')}>
+                <Button 
+                    color="primary" 
+                    variant='contained'
+                    onClick={onSubmit}
+                    disabled={!title || !cost || !category || !selectedDateTime}
+                >
+                    <CheckCircle style={{marginRight: '5px'}} fontSize='small' />
+                    {dialog.editMode ? 'Edit' : 'Create'}
+                </Button>
+                <Button 
+                    color="secondary" 
+                    variant='contained'
+                    onClick={handleCancel}
+                >
+                    <Cancel style={{marginRight: '5px'}} fontSize='small' />
+                    Cancel
+                </Button>
+            </div>
         </form>
     )
 };

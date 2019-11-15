@@ -7,11 +7,15 @@ import TripsPage from '../Components/Pages/TripsPage';
 import ExpensesPage from '../Components/Pages/ExpensesPage';
 import FormDialog from '../Components/Elements/FormDialog';
 
+// Page
 import PageContext from '../context/PageContext';
 import pageReducer from '../reducers/pageReducer';
-
+// Dialog
 import DialogContext from '../context/DialogContext';
 import dialogReducer from '../reducers/dialogReducer';
+// Summary Drawer
+import SummaryDrawerContext from '../context/SummaryDrawerContext';
+import summaryDrawerReducer from '../reducers/summaryDrawerReducer';
 
 const AppRouter = () => {
 
@@ -21,6 +25,9 @@ const AppRouter = () => {
         editMode: false,
         selectionToEdit: {}
         });
+    const [summaryDrawer, summaryDrawerDispatch] = useReducer(summaryDrawerReducer, {
+        drawerOpen: false
+    })
 
     const closeDialog = () => {
         dialogDispatch({ type: 'CLOSE'});
@@ -33,18 +40,18 @@ const AppRouter = () => {
             <Fragment>
                 <PageContext.Provider value={{ page, pageDispatch }}>
                     <DialogContext.Provider value={{ dialog, dialogDispatch }}>
-
-                        <Header />
-                            <Switch>
-                                <Route path='/' component={TripsPage} exact={true} />
-                                <Route path='/:trip/expenses' component={ExpensesPage} />
-                            </Switch>
-                        <Footer />
-                        <FormDialog 
-                            open={dialog.dialogOpen}
-                            closeDialog={closeDialog}
-                        />
-
+                        <SummaryDrawerContext.Provider value={{ summaryDrawer, summaryDrawerDispatch }}>
+                            <Header />
+                                <Switch>
+                                    <Route path='/' component={TripsPage} exact={true} />
+                                    <Route path='/:trip/expenses' component={ExpensesPage} />
+                                </Switch>
+                            <Footer />
+                            <FormDialog 
+                                open={dialog.dialogOpen}
+                                closeDialog={closeDialog}
+                            />
+                        </SummaryDrawerContext.Provider>
                     </DialogContext.Provider>
                 </PageContext.Provider>
             </Fragment>

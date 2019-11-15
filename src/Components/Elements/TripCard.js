@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
+import moment from 'moment';
 import { withStyles } from '@material-ui/styles';
 import { 
     ButtonBase, 
@@ -22,6 +23,10 @@ const styles = theme => ({
     cardActions: {
         justifyContent: 'flex-end'
     },
+    costDiv: {
+        marginTop: '5px',
+
+    },
     link: {
         color: 'inherit',
         textDecoration: 'none'
@@ -32,7 +37,41 @@ class TripCard extends Component {
 
     state = {
         moreActionsOpen: false,
-        anchorEl: undefined
+        anchorEl: undefined,
+        expenses: [],
+        dateRange: '',
+        totalCost: 0
+    }
+
+    async componentDidMount(){
+        console.log('Here!')
+        try {
+            const response = await fetch(`/get_expenses/${this.props.trip._id}`);
+            const expenses = await response.json();
+
+            let dateRange = '';
+            let totalCost = 0;
+
+            if (expenses.length > 0){
+                const dates = expenses.map(expense => moment(expense.dateTime));
+                const maxDate = moment.max(dates);
+                const minDate = moment.min(dates);
+                dateRange = `${minDate.format('MMM Do YY')} - ${maxDate.format('MMM Do YY')}`
+
+                expenses.forEach((expense) => {
+                    totalCost += expense.cost.amount;
+                });
+            }
+
+
+            this.setState(() => ({
+                expenses,
+                dateRange,
+                totalCost
+            }));
+        } catch (err){
+            console.log('Could not find expenses for TripCard,', err);
+        }
     }
 
     toggleMoreActionsOpen = (event) => {
@@ -62,6 +101,7 @@ class TripCard extends Component {
         this.toggleMoreActionsOpen();
     }
 
+
     render() {
 
         const { classes, trip } = this.props;
@@ -78,8 +118,11 @@ class TripCard extends Component {
                         <Typography variant="h5" component="h2">
                             {trip.title}
                         </Typography>
-                        <Typography className={classes.pos} color="textSecondary">
-                            adjective
+                        <Typography varaint='body2' color="textSecondary">
+                            { this.state.dateRange && this.state.dateRange }
+                        </Typography>
+                        <Typography variant='h6' color='textPrimary' className={classes.costDiv}>
+                            {this.state.totalCost}
                         </Typography>
                     </CardContent>
                     </Link>

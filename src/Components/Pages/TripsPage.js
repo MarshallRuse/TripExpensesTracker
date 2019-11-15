@@ -47,6 +47,7 @@ const TripsPage = ({ classes, ...other }) => {
     // On load, set the current page to trips for breadcrumbs and FormDialog to use
     if (page.currentPage !== 'TRIPS'){
         pageDispatch({ type: 'SET_CURRENT_PAGE', currentPage: 'TRIPS'});
+        pageDispatch({ type: 'SET_TRIP_ID', tripID: undefined});
         dialogDispatch({ 
             type: 'SET_CREATE_ITEM_FUNCTION', 
             createItemFunction: handleTripFormSubmitCreate
@@ -57,19 +58,25 @@ const TripsPage = ({ classes, ...other }) => {
         })
     }
     useEffect(() => {
+        async function loadTripsOnMount(){
+            const loadedTrips = await loadTrips();
+            setTrips(loadedTrips);
+        }
+        loadTripsOnMount();
+
         return () => {
             console.log('Cleaned up');
         }
     }, [])
 
     // Watch for changes to list of Trips
-    useEffect(() => {
-        async function loadTripsOnUpdate(){
-            const loadedTrips = await loadTrips();
-            setTrips(loadedTrips);
-        }
-        loadTripsOnUpdate();
-    }, [trips]);
+    // useEffect(() => {
+    //     async function loadTripsOnUpdate(){
+    //         const loadedTrips = await loadTrips();
+    //         setTrips(loadedTrips);
+    //     }
+    //     loadTripsOnUpdate();
+    // }, [trips]);
 
 
     // BACKEND-FACING OPERATIONS

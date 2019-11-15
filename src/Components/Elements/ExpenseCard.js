@@ -10,6 +10,7 @@ import {
     Typography 
 } from '@material-ui/core';
 import { MoreHoriz } from '@material-ui/icons';
+import getSymbolFromCurrency from 'currency-symbol-map';
 
 const styles = theme => ({
     card: {
@@ -19,7 +20,9 @@ const styles = theme => ({
         marginTop: '10px'
     },
     cardActions: {
-        justifyContent: 'flex-end'
+        justifyContent: 'flex-end',
+        paddingTop: '0px',
+        paddingBottom: '2px'
     },
     link: {
         color: 'inherit',
@@ -64,6 +67,7 @@ class ExpenseCard extends Component {
     render() {
 
         const { classes, expense } = this.props;
+        const currencySymbol = getSymbolFromCurrency(expense.cost.currency);
 
         return (
             
@@ -73,8 +77,17 @@ class ExpenseCard extends Component {
                         <Typography variant="h5" component="h2">
                             {expense.title}
                         </Typography>
-                        <Typography className={classes.pos} color="textSecondary">
-                            adjective
+                        <Typography variant='body2' color="textSecondary">
+                            {expense.category}
+                        </Typography>
+                        <Typography variant='body2' color='primary'>
+                            Lauterbrunnen, Switzerland
+                        </Typography>
+                        <Typography variant='h6' color='textPrimary'>
+                            {`${currencySymbol} ${Number.parseFloat(expense.cost.amount).toFixed(2)}`}
+                            <Typography variant='caption'>
+                                &nbsp;({expense.cost.currency})
+                            </Typography>
                         </Typography>
                     </CardContent>
                     <CardActions className={classes.cardActions}>

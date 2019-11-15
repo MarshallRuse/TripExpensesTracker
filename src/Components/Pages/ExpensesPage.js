@@ -1,10 +1,20 @@
-import React, { Fragment, useEffect, useContext, useState } from 'react';
+import React, { Fragment, useEffect, useCallback, useContext, useState } from 'react';
 import { withStyles } from '@material-ui/styles';
-import { Grid, Paper, Typography } from '@material-ui/core';
+import { 
+    Drawer, 
+    Grid, 
+    Paper, 
+    Typography
+ } from '@material-ui/core';
+import moment from 'moment';
 import ExpenseCard from '../Elements/ExpenseCard';
+import ExpensesSummary from '../Elements/ExpensesSummary';
 
 import PageContext from '../../context/PageContext';
 import DialogContext from '../../context/DialogContext';
+import SummaryDrawerContext from '../../context/SummaryDrawerContext';
+
+import fixerKey from '../../APIKeys/fixer';
 
 const styles = theme => ({
     breadcrumbs: {
@@ -12,6 +22,10 @@ const styles = theme => ({
         justifyContent: 'center',
         paddingTop: '10px',
         paddingBottom: '10px'
+    },
+    drawer: {
+        flexShrink: 0,
+        zIndex: [theme.zIndex.appBar - 10, '!important']
     },
     flexCenter: {
         display: 'flex',
@@ -26,19 +40,118 @@ const styles = theme => ({
         padding: 20,  
         overflowY: 'auto',
         height: '100%', 
-    }
+    },
+    toolbar: theme.mixins.toolbar
 })
 
-const ExpensesPage = ({ classes, match }) => {
 
+const ExpensesPage = ({ classes, match }) => {
+    
     const { page, pageDispatch } = useContext(PageContext);
     const { dialog, dialogDispatch } = useContext(DialogContext);
+    const { summaryDrawer, summaryDrawerDispatch } = useContext(SummaryDrawerContext);
 
+    const [trip, setTrip] = useState({});
     const [expenses, setExpenses] = useState([]);
+    const [fetchTrip, setFetchTrip] = useState(true);
+    const [fetchExpenses, setFetchExpenses] = useState(true);
+
+    const handleExpenseFormSubmitCreate = useCallback(async (expense) => {
+        dialogDispatch({ type: 'CLOSE' });
+        console.log('Expense is: ', expense)
+
+        // Convert the price to CAD for the date spent, for ease of summarizing later.
+        let rate = 1;
+        if (expense.cost.currency !== 'EUR'){
+            try {
+                const dateFormatted = moment(expense.dateTime).format('YYYY-MM-DD');
+                const fromSymbol = expense.cost.currency;
+                const url = `http://data.fixer.io/api/2019-11-12?access_key=${fixerKey}&symbols=${fromSymbol}`;
+                const response = await fetch(url);
+                const responseJSON = await response.json();
+                rate = responseJSON.rates[fromSymbol]
+            } catch(err){
+                console.log('Could not convert currency to EUR', err);
+            }
+        }
+
+        const costWithEUR = {
+            ...expense.cost,
+            inEUR: expense.cost.amount / rate,
+            rateToEUR: rate
+        }
+
+        const expenseToSubmit = {
+            ...expense,
+            cost: costWithEUR
+        }
 
 
-    // On load, set the current page to trips for breadcrumbs and FormDialog to use
-    if (page.currentPage !== 'EXPENSES'){
+        try {
+            await fetch('/create_expense', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(expenseToSubmit)
+            });
+            setFetchExpenses(true);
+
+        } catch(err){
+            console.log('Error creating trip, ', err);
+        }
+    }, [dialogDispatch])
+
+    const handleExpenseFormSubmitEdit = useCallback(async (expense) => {
+        dialogDispatch({ type: 'CLOSE' });
+        dialogDispatch({ type: 'SET_EDIT_MODE_FALSE' });
+        dialogDispatch({ type: 'SET_ITEM_TO_EDIT', itemToEdit: undefined });
+
+        // Convert the price to CAD for the date spent, for ease of summarizing later.
+        let rate = 1;
+        if (expense.cost.currency !== 'EUR'){
+            try {
+                const dateFormatted = moment(expense.dateTime).format('YYYY-MM-DD');
+                const fromSymbol = expense.cost.currency;
+                const url = `http://data.fixer.io/api/${dateFormatted}?access_key=${fixerKey}&symbols=${fromSymbol}`;
+                const response = await fetch(url);
+                const responseJSON = await response.json();
+                rate = responseJSON.rates[fromSymbol]
+            } catch(err){
+                console.log('Could not convert currency to EUR', err);
+            }
+        }
+
+        const costWithEUR = {
+            ...expense.cost,
+            inEUR: expense.cost.amount / rate,
+            rateToEUR: rate
+        }
+
+        const expenseToSubmit = {
+            ...expense,
+            cost: costWithEUR
+        }
+
+        try {
+            await fetch(`/update_expense/${expense._id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(expenseToSubmit)
+            });
+
+            // Save to state
+            setFetchExpenses(true);
+
+        } catch(err){
+            console.log('Error creating trip, ', err);
+        }
+    }, [dialogDispatch]);
+
+    // On load, set the current page to EXPENSES for breadcrumbs and FormDialog to use
+    useEffect(() => {
         pageDispatch({ type: 'SET_CURRENT_PAGE', currentPage: 'EXPENSES'});
         pageDispatch({ type: 'SET_TRIP_ID', tripID: match.params.trip})
         dialogDispatch({ 
@@ -49,31 +162,51 @@ const ExpensesPage = ({ classes, match }) => {
             type: 'SET_EDIT_ITEM_FUNCTION',
             editItemFunction: handleExpenseFormSubmitEdit
         })
-    }
-    useEffect(() => {
-        return () => {
-            console.log('Cleaned up');
-        }
-    }, []);
+        
+    }, [    page.currentPage, 
+            pageDispatch, 
+            dialogDispatch, 
+            match.params.trip, 
+            handleExpenseFormSubmitCreate, 
+            handleExpenseFormSubmitEdit
+        ])
+    
 
     useEffect(() => {
-        async function loadExpensesOnUpdate(){
-            const loadedExpenses = await loadExpenses();
-            setExpenses(loadedExpenses);
+        async function getTrip(){
+            try {
+                const response = await fetch(`/get_trip/${match.params.trip}`);
+                const trip = await response.json();
+                setTrip(trip);
+            } catch(err){
+                console.log('Error fetching trip, ', err);
+                return undefined;
+            }
         }
-        loadExpensesOnUpdate();
-    }, [expenses]);
+        getTrip();
 
-    const loadExpenses = async () => {
-        try {
-            const responseObj = await fetch('/get_expenses');
-            const expenses = await responseObj.json();
-            return expenses;
-        } catch(err){
-            console.log('Error creating trip, ', err);
+    }, [match.params.trip])
+
+    useEffect(() => {
+
+        async function getExpenses(){
+            try {
+                const response = await fetch(`/get_expenses/${match.params.trip}`);
+                const expenses = await response.json();
+                setExpenses(expenses);
+                setFetchExpenses(false);
+            } catch(err){
+                console.log('Error fetching expenses, ', err);
+                return undefined;
+            }
         }
-    }
 
+        if (fetchExpenses){
+            getExpenses();
+        }
+
+
+    }, [fetchExpenses, match.params.trip]);
 
 
     const editExpense = (expenseID) => {
@@ -98,72 +231,11 @@ const ExpensesPage = ({ classes, match }) => {
     }
 
 
-    async function handleExpenseFormSubmitCreate(expense){
-        dialogDispatch({ type: 'CLOSE' });
-
-        try {
-            const responseObj = await fetch('/create_expense', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(expense)
-            });
-            const newExpense = await responseObj.json();
-            setExpenses([ ...expenses, newExpense]);
-
-        } catch(err){
-            console.log('Error creating trip, ', err);
-        }
-    }
-
-    async function handleExpenseFormSubmitEdit(expense){
-        dialogDispatch({ type: 'CLOSE' });
-        dialogDispatch({ type: 'SET_EDIT_MODE_FALSE' });
-        dialogDispatch({ type: 'SET_ITEM_TO_EDIT', itemToEdit: undefined });
-
-        try {
-            const responseObj = await fetch(`/update_expense/${expense._id}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(expense)
-            });
-
-            const newExpense = await responseObj.json();
-
-            // ******
-            // This next part doesn't work yet without another call to loadTrips in 
-            // the useEffect watching for a change to 'trips'. So the code below doesn't strictly
-            // do anything yet because the trips array is overwritten by that call.  This function 
-            // doesnt have access to the state, because its actually being placed on the dialogContext before
-            // the state is initialized.  The trips are outside of the closure of the function being called in 
-            // TripForm.  I hope to find a way to remedy this without needing to call for the entire list of trips
-            // again. 
-            // *******
-            // Replace in same position, so edited trip doesn't go to end of array
-            const expenseToReplaceIndex = expenses.findIndex((expense) => expense._id === newExpense._id );
-            console.log('Expense to replace index, ', expenseToReplaceIndex)
-            let newExpenses = [...expenses];
-            newExpenses[expenseToReplaceIndex] = newExpense;
-
-            // Save to state
-            setExpenses(newExpenses);
-
-        } catch(err){
-            console.log('Error creating trip, ', err);
-        }
-    }
-
     return (
         <Fragment>
-            <Grid container direction='column' alignItems='center' justify='center' className={classes.centerContent}>
-                <Grid item xs={12}>
-                    
-                </Grid>
+                <div className={classes.toolbar} />
                 <Grid container direction='row' justify='center' alignItems='center'>
-                    { expenses.length > 0
+                    { (expenses && expenses.length > 0)
                         ?   expenses.map((expense, index) => (
                             <Grid item xs={10} key={index}>
                                 <ExpenseCard expense={expense} editExpense={editExpense} deleteExpense={deleteExpense} />
@@ -177,7 +249,16 @@ const ExpensesPage = ({ classes, match }) => {
                             </Grid>
                     }
                 </Grid>
-            </Grid>
+        
+            <Drawer 
+                className={classes.drawer} 
+                anchor="bottom"
+                open={summaryDrawer.drawerOpen}
+                onClose={() => summaryDrawerDispatch({ type: 'CLOSE' })}
+            >
+                <ExpensesSummary trip={trip} expenses={expenses} />
+                <div className={classes.toolbar} />
+            </Drawer>
         </Fragment>
         
     )
