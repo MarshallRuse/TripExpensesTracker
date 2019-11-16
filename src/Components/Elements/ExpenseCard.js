@@ -10,6 +10,7 @@ import {
     Typography 
 } from '@material-ui/core';
 import { MoreHoriz } from '@material-ui/icons';
+import moment from 'moment';
 import getSymbolFromCurrency from 'currency-symbol-map';
 
 const styles = theme => ({
@@ -80,8 +81,16 @@ class ExpenseCard extends Component {
                         <Typography variant='body2' color="textSecondary">
                             {expense.category}
                         </Typography>
+                        {expense.location.business && 
+                            <Typography variant='body2' color='primary'>
+                                {expense.location.business}
+                            </Typography>
+                        }
                         <Typography variant='body2' color='primary'>
-                            Lauterbrunnen, Switzerland
+                            {`${expense.location.city}, ${expense.location.country}`}
+                        </Typography>
+                        <Typography variant='caption'>
+                            {`${moment(expense.dateTime).format('MMM Do, YYYY')} - ${moment(expense.dateTime).format('hh:mm a')}`}
                         </Typography>
                         <Typography variant='h6' color='textPrimary'>
                             {`${currencySymbol} ${Number.parseFloat(expense.cost.amount).toFixed(2)}`}

@@ -58,12 +58,12 @@ const expenseSchema = mongoose.Schema({
         },
         city: {
             type: String,
-            required: false,
+            required: true,
             trim: true
         },
         country: {
             type: String,
-            required: false,
+            required: true,
             trim: true
         }
     },

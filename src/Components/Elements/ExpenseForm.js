@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { withStyles } from '@material-ui/styles';
+import { withStyles, StylesProvider } from '@material-ui/styles';
 import { 
     Button, 
     Dialog,
@@ -20,6 +20,7 @@ import DialogContext from '../../context/DialogContext';
 import PageContext from '../../context/PageContext';
 
 import currencyList from '../../currency_list';
+import '../../CSS/GooglePlaces.css'
 
 const categories = ['Food', 'Beer', 'Transport', 'Activity', 'Misc.'];
 const paymentMethods = ['Cash', 'Debit', 'Credit - Visa', 'Credit - Mastercard', 'Credit - AmEx', 'Credit - Other', 'Cheque'];
@@ -119,6 +120,9 @@ const ExpenseForm = ({ classes, ...other }) => {
         setCost('');
         setCategory('');
         setDescription('');
+        setBusiness('');
+        setCity('');
+        setCountry('');
     }
 
     const onSubmit = () => {
@@ -137,6 +141,9 @@ const ExpenseForm = ({ classes, ...other }) => {
                 currency,
                 paymentMethodFormatted,
                 selectedDateTime,
+                business,
+                city,
+                country,
                 description,
 
             }
@@ -148,6 +155,9 @@ const ExpenseForm = ({ classes, ...other }) => {
                 currency,
                 paymentMethodFormatted,
                 selectedDateTime,
+                business,
+                city,
+                country,
                 description
             }
         }
@@ -162,6 +172,11 @@ const ExpenseForm = ({ classes, ...other }) => {
             },
             paymentMethod: expenseToSubmit.paymentMethodFormatted,
             dateTime: expenseToSubmit.selectedDateTime,
+            location: {
+                business: expenseToSubmit.business,
+                city: expenseToSubmit.city,
+                country: expenseToSubmit.country
+            },
             trip: page.tripID
         }
 
@@ -177,6 +192,7 @@ const ExpenseForm = ({ classes, ...other }) => {
         setCost('');
         setCategory('');
         setDescription('');
+
     }
 
     const openAddCategoryDialog = () => {
@@ -186,6 +202,14 @@ const ExpenseForm = ({ classes, ...other }) => {
     const handleNewCategoryChange = (event) => {
         const newCat = event.target.value;
         setNewCategory(newCat);
+    }
+
+    const fillLocationInputs = (locationObj) => {
+        if (locationObj.type === 'business'){
+            setBusiness(locationObj.business);
+        }
+        setCity(locationObj.city);
+        setCountry(locationObj.country);
     }
 
     const onAddCategory = async () => {
@@ -203,7 +227,7 @@ const ExpenseForm = ({ classes, ...other }) => {
                 body: JSON.stringify(catObj)
             });
             const responseObj = await response.json();
-            
+
 
         } catch(err){
             console.log('Error adding category,', err)
@@ -323,7 +347,10 @@ const ExpenseForm = ({ classes, ...other }) => {
             <Typography variant='body2' align='center' gutterBottom className={classes.sectionTitle}>
                 <strong>Location</strong>
             </Typography>
-            <LocationAutocomplete />
+            <StylesProvider injectFirst>
+                <LocationAutocomplete fillLocationInputs={fillLocationInputs} />
+            </StylesProvider>
+            
             <br />
             <TextField
                 label='Business'
