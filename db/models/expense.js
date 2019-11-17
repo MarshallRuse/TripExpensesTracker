@@ -42,8 +42,8 @@ const expenseSchema = mongoose.Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ['CASH', 'DEBIT', 'CREDIT_VISA', 'CREDIT_MASTERCARD', 'CREDIT_AMEX', 'CREDIT_OTHER', 'CHEQUE'],
-        default: 'CASH'
+        enum: ['Cash', 'Debit', 'Credit - Visa', 'Credit - Mastercard', 'Credit - American Express', 'Credit - Other', 'Cheque'],
+        default: 'Cash'
     },
     dateTime: {
         type: Date,

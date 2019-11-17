@@ -23,7 +23,7 @@ const FormDialog = ({ open, closeDialog }) => {
             <DialogTitle id="form-dialog-title">{dialog.editMode ? `Edit your ${pageType}`: `Create a New ${pageType}`}</DialogTitle>
             <DialogContent>
                 <MuiPickersUtilsProvider utils={MomentUtils}>
-                { page.currentPage === 'TRIP' 
+                { page.currentPage === 'TRIPS' 
                     ?   <TripForm 
                             trip={dialog.itemToEdit} 
                             onSubmit={dialog.editMode ? dialog.editItemFunction : dialog.createItemFunction}

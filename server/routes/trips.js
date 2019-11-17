@@ -21,6 +21,24 @@ router.post('/create_trip', async (req, res) => {
     }
 });
 
+router.post('/update_trip/:tripID/add_category', async (req, res) => {
+
+    const newCategory = req.body.newCategory;
+
+    try {
+        const trip = await Trip.findById(req.params.tripID);
+
+        if (newCategory){
+            const categories = [...trip.categories, newCategory];
+            trip.categories = categories;
+            await trip.save();
+        }
+        res.status(200).json(trip.categories);
+    } catch (err) {
+        res.status(400).send(err);
+    }
+});
+
 // R
 router.get('/get_trips', async (req, res) => {
     try {
@@ -58,29 +76,52 @@ router.patch('/update_trip/:tripID', async (req, res) => {
     }
 });
 
-router.patch('/update_trip/:tripID/add_category', async (req, res) => {
+router.patch('/update_trip/:tripID/edit_category', async (req, res) => {
 
-    const newCategory = req.body.newCategory;
+    const { originalCategory, editedCategory } = req.body;
 
     try {
         const trip = await Trip.findById(req.params.tripID);
 
-        if (newCategory){
-            // Find categories in here
+        if (editedCategory){
+            const newCategories = [...trip.categories];
+            const index = newCategories.findIndex((category) => category === originalCategory);
+            newCategories[index] = editedCategory;
+            trip.categories = newCategories;
+            await trip.save();
         }
-        
-        await trip.save();
-        res.status(200).json(trip);
+        res.status(200).json(trip.categories);
     } catch (err) {
         res.status(400).send(err);
     }
 });
+
 
 // D
 router.delete('/delete_trip/:tripID', async (req, res) => {
     try {
         const trip = await Trip.findByIdAndDelete(req.params.tripID);
         res.status(200).json(trip);
+    } catch (err) {
+        res.status(400).send(err);
+    }
+});
+
+router.delete('/update_trip/:tripID/delete_category', async (req, res) => {
+
+    const { categoryToDelete } = req.body;
+
+    try {
+        const trip = await Trip.findById(req.params.tripID);
+
+        if (categoryToDelete){
+            const newCategories = [...trip.categories];
+            const index = newCategories.findIndex((category) => category === categoryToDelete);
+            newCategories.splice(index, 1);
+            trip.categories = newCategories;
+            await trip.save();
+        }
+        res.status(200).json(trip.categories);
     } catch (err) {
         res.status(400).send(err);
     }

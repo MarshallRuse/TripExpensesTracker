@@ -14,6 +14,11 @@ const tripSchema = mongoose.Schema({
         trim: true,
         default: 'CAD'
     },
+    categories: {
+        type: [String],
+        required: true,
+        default: ['Food', 'Coffee', 'Tea', 'Beer', 'Wine', 'Transport', 'Activity', 'Misc.']
+    },
     owner: [{
         // type: mongoose.Schema.Types.ObjectId,
         // required: true,

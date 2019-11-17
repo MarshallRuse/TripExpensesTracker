@@ -12,6 +12,8 @@ import {
     Typography 
 } from '@material-ui/core';
 import { MoreHoriz } from '@material-ui/icons';
+import getSymbolFromCurrency from 'currency-symbol-map';
+
 
 const styles = theme => ({
     card: {
@@ -44,7 +46,6 @@ class TripCard extends Component {
     }
 
     async componentDidMount(){
-        console.log('Here!')
         try {
             const response = await fetch(`/get_expenses/${this.props.trip._id}`);
             const expenses = await response.json();
@@ -105,6 +106,7 @@ class TripCard extends Component {
     render() {
 
         const { classes, trip } = this.props;
+        const currencySymbol = getSymbolFromCurrency(trip.preferredCurrency);
 
         return (
             
@@ -122,8 +124,12 @@ class TripCard extends Component {
                             { this.state.dateRange && this.state.dateRange }
                         </Typography>
                         <Typography variant='h6' color='textPrimary' className={classes.costDiv}>
-                            {this.state.totalCost}
+                            {`${currencySymbol} ${Number.parseFloat(this.state.totalCost).toFixed(2)}`}
+                            <Typography variant='caption'>
+                                &nbsp;({trip.preferredCurrency})
+                            </Typography>
                         </Typography>
+
                     </CardContent>
                     </Link>
                     <CardActions className={classes.cardActions}>

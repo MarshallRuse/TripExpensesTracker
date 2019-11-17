@@ -1,4 +1,4 @@
-import React, { Fragment, useState, useContext, useEffect } from 'react';
+import React, { Fragment, useState, useContext, useEffect, useCallback } from 'react';
 import { withStyles } from '@material-ui/styles';
 import { 
     Grid, 
@@ -39,24 +39,70 @@ const styles = theme => ({
 })
 
 const TripsPage = ({ classes, ...other }) => {
-    const { page, pageDispatch } = useContext(PageContext);
-    const { dialog, dialogDispatch } = useContext(DialogContext);
+    const { pageDispatch } = useContext(PageContext);
+    const { dialogDispatch } = useContext(DialogContext);
 
     const [trips, setTrips] = useState([]);
 
-    // On load, set the current page to trips for breadcrumbs and FormDialog to use
-    if (page.currentPage !== 'TRIPS'){
-        pageDispatch({ type: 'SET_CURRENT_PAGE', currentPage: 'TRIPS'});
-        pageDispatch({ type: 'SET_TRIP_ID', tripID: undefined});
-        dialogDispatch({ 
-            type: 'SET_CREATE_ITEM_FUNCTION', 
-            createItemFunction: handleTripFormSubmitCreate
-        });
-        dialogDispatch({
-            type: 'SET_EDIT_ITEM_FUNCTION',
-            editItemFunction: handleTripFormSubmitEdit
-        })
-    }
+    const handleTripFormSubmitCreate = useCallback(async (trip) => {
+        dialogDispatch({ type: 'CLOSE' });
+
+        try {
+            const responseObj = await fetch('/create_trip', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(trip)
+            });
+            const newTrip = await responseObj.json();
+            setTrips([ ...trips, newTrip]);
+
+        } catch(err){
+            console.log('Error creating trip, ', err);
+        }
+    }, [dialogDispatch, trips]);
+
+    const handleTripFormSubmitEdit = useCallback(async (trip) => {
+        dialogDispatch({ type: 'CLOSE' });
+        dialogDispatch({ type: 'SET_EDIT_MODE_FALSE' });
+        dialogDispatch({ type: 'SET_ITEM_TO_EDIT', itemToEdit: undefined });
+
+        try {
+            const responseObj = await fetch(`/update_trip/${trip._id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(trip)
+            });
+
+            const newTrip = await responseObj.json();
+
+            // ******
+            // This next part doesn't work yet without another call to loadTrips in 
+            // the useEffect watching for a change to 'trips'. So the code below doesn't strictly
+            // do anything yet because the trips array is overwritten by that call.  This function 
+            // doesnt have access to the state, because its actually being placed on the dialogContext before
+            // the state is initialized.  The trips are outside of the closure of the function being called in 
+            // TripForm.  I hope to find a way to remedy this without needing to call for the entire list of trips
+            // again. 
+            // *******
+            // Replace in same position, so edited trip doesn't go to end of array
+            const tripToReplaceIndex = trips.findIndex((trip) => trip._id === newTrip._id );
+            console.log('Trip to replace index, ', tripToReplaceIndex)
+            let newTrips = [...trips];
+            newTrips[tripToReplaceIndex] = newTrip;
+
+            // Save to state
+            setTrips(newTrips);
+
+        } catch(err){
+            console.log('Error creating trip, ', err);
+        }
+    }, [dialogDispatch, trips]);
+
+
     useEffect(() => {
         async function loadTripsOnMount(){
             const loadedTrips = await loadTrips();
@@ -68,6 +114,20 @@ const TripsPage = ({ classes, ...other }) => {
             console.log('Cleaned up');
         }
     }, [])
+
+    // On load, set the current page to trips for breadcrumbs and FormDialog to use
+    useEffect(() => {
+        pageDispatch({ type: 'SET_CURRENT_PAGE', currentPage: 'TRIPS'});
+        pageDispatch({ type: 'SET_TRIP_ID', tripID: undefined});
+        dialogDispatch({ 
+            type: 'SET_CREATE_ITEM_FUNCTION', 
+            createItemFunction: handleTripFormSubmitCreate
+        });
+        dialogDispatch({
+            type: 'SET_EDIT_ITEM_FUNCTION',
+            editItemFunction: handleTripFormSubmitEdit
+        })
+    }, [pageDispatch, dialogDispatch, handleTripFormSubmitCreate, handleTripFormSubmitEdit]);
 
     // Watch for changes to list of Trips
     // useEffect(() => {
@@ -112,63 +172,6 @@ const TripsPage = ({ classes, ...other }) => {
         }
     }
 
-    async function handleTripFormSubmitCreate(trip){
-        dialogDispatch({ type: 'CLOSE' });
-
-        try {
-            const responseObj = await fetch('/create_trip', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(trip)
-            });
-            const newTrip = await responseObj.json();
-            setTrips([ ...trips, newTrip]);
-
-        } catch(err){
-            console.log('Error creating trip, ', err);
-        }
-    }
-
-    async function handleTripFormSubmitEdit(trip){
-        dialogDispatch({ type: 'CLOSE' });
-        dialogDispatch({ type: 'SET_EDIT_MODE_FALSE' });
-        dialogDispatch({ type: 'SET_ITEM_TO_EDIT', itemToEdit: undefined });
-
-        try {
-            const responseObj = await fetch(`/update_trip/${trip._id}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(trip)
-            });
-
-            const newTrip = await responseObj.json();
-
-            // ******
-            // This next part doesn't work yet without another call to loadTrips in 
-            // the useEffect watching for a change to 'trips'. So the code below doesn't strictly
-            // do anything yet because the trips array is overwritten by that call.  This function 
-            // doesnt have access to the state, because its actually being placed on the dialogContext before
-            // the state is initialized.  The trips are outside of the closure of the function being called in 
-            // TripForm.  I hope to find a way to remedy this without needing to call for the entire list of trips
-            // again. 
-            // *******
-            // Replace in same position, so edited trip doesn't go to end of array
-            const tripToReplaceIndex = trips.findIndex((trip) => trip._id === newTrip._id );
-            console.log('Trip to replace index, ', tripToReplaceIndex)
-            let newTrips = [...trips];
-            newTrips[tripToReplaceIndex] = newTrip;
-
-            // Save to state
-            setTrips(newTrips);
-
-        } catch(err){
-            console.log('Error creating trip, ', err);
-        }
-    }
 
     return (
         <Fragment>

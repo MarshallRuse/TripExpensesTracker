@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { withStyles, StylesProvider } from '@material-ui/styles';
 import { 
     Button, 
@@ -22,7 +22,6 @@ import PageContext from '../../context/PageContext';
 import currencyList from '../../currency_list';
 import '../../CSS/GooglePlaces.css'
 
-const categories = ['Food', 'Beer', 'Transport', 'Activity', 'Misc.'];
 const paymentMethods = ['Cash', 'Debit', 'Credit - Visa', 'Credit - Mastercard', 'Credit - AmEx', 'Credit - Other', 'Cheque'];
 
 const styles = theme => ({
@@ -48,18 +47,38 @@ const ExpenseForm = ({ classes, ...other }) => {
     const { dialog, dialogDispatch } = useContext(DialogContext);
     const { page } = useContext(PageContext);
 
+    const [trip, setTrip] = useState({});
     const [title, setTitle] = useState(dialog.editMode ? dialog.itemToEdit.title : '');
     const [cost, setCost] =  useState(dialog.editMode ? dialog.itemToEdit.cost.amount : '');
+    const [tripCategories, setTripCategories] = useState([]);
     const [category, setCategory] = useState(dialog.editMode ? dialog.itemToEdit.category : '');
     const [description, setDescription] = useState(dialog.editMode ? dialog.itemToEdit.description : '');
     const [currency, setCurrency] = useState(dialog.editMode ? dialog.itemToEdit.cost.currency : 'CAD');
-    const [paymentMethod, setPaymentMethod] = useState('Cash');
-    const [selectedDateTime, setDateTime] = useState(new Date());
-    const [business, setBusiness] = useState('');
-    const [city, setCity] = useState('');
-    const [country, setCountry] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState(dialog.editMode ? dialog.itemToEdit.paymentMethod :'Cash');
+    const [selectedDateTime, setDateTime] = useState(dialog.editMode ? dialog.itemToEdit.dateTime : new Date());
+    const [business, setBusiness] = useState(dialog.editMode ? dialog.itemToEdit.location.business : '');
+    const [city, setCity] = useState(dialog.editMode ? dialog.itemToEdit.location.city : '');
+    const [country, setCountry] = useState(dialog.editMode ? dialog.itemToEdit.location.country : '');
+    // Add Category functionality
     const [newCategory, setNewCategory] = useState('');
     const [newCategoryDialogOpen, setNewCategoryDialogOpen] = useState(false);
+
+    useEffect(() => {
+         async function fetchTripOnLoad(){
+             try {
+                const response = await fetch(`/get_trip/${page.tripID}`);
+                const trip = await response.json();
+
+                setTrip(trip);
+                setTripCategories(trip.categories);
+             } catch(err){
+                 console.log('Cannot fetch trip in Expense Form, ', err);
+             }
+         }
+
+         fetchTripOnLoad();
+
+    }, [page.tripID])
 
     const handleTitleChange = (event) => {
         const title = event.target.value;
@@ -80,7 +99,11 @@ const ExpenseForm = ({ classes, ...other }) => {
 
     const handleCategoryChange = (event) => {
         const category = event.target.value;
-        setCategory(category);
+        if (category === 'ADD_CATEGORY'){
+            openAddCategoryDialog();
+        } else {
+            setCategory(category);
+        }
     }
 
     const handlePaymentMethodChange = (event) => {
@@ -130,7 +153,6 @@ const ExpenseForm = ({ classes, ...other }) => {
         let expenseToSubmit = {};
 
         const numberCost = Number.parseFloat(cost);
-        const paymentMethodFormatted = paymentMethod.toUpperCase().replace('-', '_').split(' ').join('');
 
         if (dialog.editMode){
             expenseToSubmit = {
@@ -139,7 +161,7 @@ const ExpenseForm = ({ classes, ...other }) => {
                 numberCost,
                 category,
                 currency,
-                paymentMethodFormatted,
+                paymentMethod,
                 selectedDateTime,
                 business,
                 city,
@@ -153,7 +175,7 @@ const ExpenseForm = ({ classes, ...other }) => {
                 numberCost,
                 category,
                 currency,
-                paymentMethodFormatted,
+                paymentMethod,
                 selectedDateTime,
                 business,
                 city,
@@ -170,7 +192,7 @@ const ExpenseForm = ({ classes, ...other }) => {
                 amount: expenseToSubmit.numberCost,
                 currency: expenseToSubmit.currency
             },
-            paymentMethod: expenseToSubmit.paymentMethodFormatted,
+            paymentMethod: expenseToSubmit.paymentMethod,
             dateTime: expenseToSubmit.selectedDateTime,
             location: {
                 business: expenseToSubmit.business,
@@ -214,20 +236,29 @@ const ExpenseForm = ({ classes, ...other }) => {
 
     const onAddCategory = async () => {
         try {
+            const currentTripCategories = trip.categories.map((cat) => cat.toLowerCase());
 
-            const catObj = {
-                newCategory
-            };
+            if (newCategory.toLowerCase() !== 'add_category' 
+                    && !currentTripCategories.includes(newCategory.toLowerCase())){
 
-            const response = await fetch(`/update_trip/${page.tripID}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(catObj)
-            });
-            const responseObj = await response.json();
+                const catObj = {
+                    newCategory
+                };
 
+                const response = await fetch(`/update_trip/${page.tripID}/add_category`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(catObj)
+                });
+                const categories = await response.json();
+                setTripCategories(categories);
+                setNewCategoryDialogOpen(false);
+            }
+            else {
+                throw new Error('Cannot add category "Add_Category" or variations thereof.');
+            }
 
         } catch(err){
             console.log('Error adding category,', err)
@@ -270,17 +301,19 @@ const ExpenseForm = ({ classes, ...other }) => {
                     onChange={handleCategoryChange}
                     className={classes.input}
                 >
-                    {categories.map((category) => 
-                        <MenuItem 
-                            value={category}
-                            key={category}
-                        >{category}</MenuItem>
-                    )}
+                    {tripCategories 
+                        ? tripCategories.map((category) => 
+                            <MenuItem 
+                                value={category}
+                                key={category}
+                            >{category}</MenuItem>
+                        )
+                        : []
+                    }
                     <MenuItem
                         key={'ADD_CATEGORY'}
-                        value={''}
+                        value={'ADD_CATEGORY'}
                         className={classes.actionMenuItem}
-                        onClick={openAddCategoryDialog}
                     >
                         Add Category 
                         <Add />
@@ -381,6 +414,7 @@ const ExpenseForm = ({ classes, ...other }) => {
             <br />
             <div className={[classes.input, classes.spaceApart].join(' ')}>
                 <Button 
+                    style={{marginRight: '10px'}}
                     color="primary" 
                     variant='contained'
                     onClick={onSubmit}

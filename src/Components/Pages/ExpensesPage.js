@@ -48,12 +48,11 @@ const styles = theme => ({
 const ExpensesPage = ({ classes, match }) => {
     
     const { page, pageDispatch } = useContext(PageContext);
-    const { dialog, dialogDispatch } = useContext(DialogContext);
+    const { dialogDispatch } = useContext(DialogContext);
     const { summaryDrawer, summaryDrawerDispatch } = useContext(SummaryDrawerContext);
 
     const [trip, setTrip] = useState({});
     const [expenses, setExpenses] = useState([]);
-    const [fetchTrip, setFetchTrip] = useState(true);
     const [fetchExpenses, setFetchExpenses] = useState(true);
 
     const handleExpenseFormSubmitCreate = useCallback(async (expense) => {
@@ -66,7 +65,7 @@ const ExpensesPage = ({ classes, match }) => {
             try {
                 const dateFormatted = moment(expense.dateTime).format('YYYY-MM-DD');
                 const fromSymbol = expense.cost.currency;
-                const url = `http://data.fixer.io/api/2019-11-12?access_key=${fixerKey}&symbols=${fromSymbol}`;
+                const url = `http://data.fixer.io/api/${dateFormatted}?access_key=${fixerKey}&symbols=${fromSymbol}`;
                 const response = await fetch(url);
                 const responseJSON = await response.json();
                 rate = responseJSON.rates[fromSymbol]
