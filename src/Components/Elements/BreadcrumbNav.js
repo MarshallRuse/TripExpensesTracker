@@ -16,7 +16,8 @@ const styles = theme => ({
         justifyContent: 'center',
         // paddingTop: '10px',
         // paddingBottom: '10px',
-        width: '100%'
+        width: '100%',
+        zIndex: 100
     },
     link: {
         textDecoration: 'none',

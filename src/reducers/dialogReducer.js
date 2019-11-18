@@ -35,6 +35,16 @@ const dialogReducer = (state, action) => {
                     ...state,
                     editItemFunction: action.editItemFunction
                 }
+        case 'OPEN_SORT_DIALOG': 
+                return {
+                    ...state,
+                    sortDialogOpen: true
+                }
+        case 'CLOSE_SORT_DIALOG':
+            return {
+                ...state,
+                sortDialogOpen: false
+            }
         default:
             return state;
     }

@@ -13,12 +13,6 @@ import DialogContext from '../../context/DialogContext';
 
 
 const styles = theme => ({
-    breadcrumbs: {
-        display: 'flex',
-        justifyContent: 'center',
-        paddingTop: '10px',
-        paddingBottom: '10px'
-    },
     flexCenter: {
         display: 'flex',
         flex: 1,
@@ -26,16 +20,18 @@ const styles = theme => ({
     },
     centerContent: {
         flex: 1,
-        height: 'calc(100% - 56px - 56px - 40px)'
+        height: 'calc(100% - 56px - 56px)'
     },
     cardList: {
         height: '100%',
         overflowY: 'auto'
     },
     paper: { 
-        padding: 20,  
         height: '100%', 
-    }
+        padding: 20,
+        overflowY: 'auto' 
+    },
+    toolbar: theme.mixins.toolbar
 })
 
 const TripsPage = ({ classes, ...other }) => {
@@ -175,23 +171,22 @@ const TripsPage = ({ classes, ...other }) => {
 
     return (
         <Fragment>
-            <Grid container direction='column' alignItems='center' justify='center' className={classes.centerContent}>
-                <Grid container direction='row' justify='center' alignItems='center' className={classes.cardList}>
-                    { trips.length > 0 
-                        ?   trips.map((trip, index) => (
-                                <Grid item xs={10} key={index}>
-                                    <TripCard trip={trip} editTrip={editTrip} deleteTrip={deleteTrip} />
-                                </Grid>))
-                        
-                        :   <Grid item xs={10}>
-                                <Paper className={classes.paper}>
-                                    <Typography variant='subtitle1' align='center' style={{color: '#7b7b7b'}}>
-                                        Add your first trip!
-                                    </Typography>
-                                </Paper>
-                            </Grid>
-                    }
-                </Grid>
+            <div className={classes.toolbar} />
+            <Grid container direction='row' justify='center' alignItems='center'>
+                { (trips && trips.length > 0) 
+                    ?   trips.map((trip, index) => (
+                            <Grid item xs={10} key={index}>
+                                <TripCard trip={trip} editTrip={editTrip} deleteTrip={deleteTrip} />
+                            </Grid>))
+                    
+                    :   <Grid item xs={10}>
+                            <Paper className={classes.paper}>
+                                <Typography variant='subtitle1' align='center' style={{color: '#7b7b7b'}}>
+                                    Add your first trip!
+                                </Typography>
+                            </Paper>
+                        </Grid>
+                }
             </Grid>
         </Fragment>
         

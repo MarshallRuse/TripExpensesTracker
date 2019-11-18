@@ -8,6 +8,7 @@ import {
 } from '@material-ui/core';
 import { Add, BarChart, FilterList } from '@material-ui/icons';
 
+import PageContext from '../../context/PageContext';
 import DialogContext from '../../context/DialogContext';
 import SummaryDrawerContext from '../../context/SummaryDrawerContext';
 
@@ -36,10 +37,15 @@ const Footer = ({ classes  }) => {
 
     const { summaryDrawer, summaryDrawerDispatch } = useContext(SummaryDrawerContext); 
 
+    const { page } = useContext(PageContext);
     const { dialogDispatch } = useContext(DialogContext);
 
     const openDialog = () => {
         dialogDispatch({ type: 'OPEN' });
+    }
+
+    const toggleSortDialog = () => {
+        dialogDispatch({ type: 'OPEN_SORT_DIALOG' });
     }
 
     const toggleDrawer = () => {
@@ -49,6 +55,7 @@ const Footer = ({ classes  }) => {
             summaryDrawerDispatch({ type: 'OPEN' });
         }
     }
+
     return (
         <Fragment>
             <div className={classes.toolbar} />
@@ -63,13 +70,17 @@ const Footer = ({ classes  }) => {
                     >
                         <Add />
                     </Fab>
-                    <IconButton color='inherit'>
+                    <IconButton color='inherit' onClick={toggleSortDialog}>
                         <FilterList />
                     </IconButton>
-                    <div className={classes.grow} />
-                    <IconButton color='inherit' onClick={toggleDrawer}>
-                        <BarChart />
-                    </IconButton>
+                    {page.currentPage === 'EXPENSES' && 
+                        <>
+                            <div className={classes.grow} />
+                            <IconButton color='inherit' onClick={toggleDrawer}>
+                                <BarChart />
+                            </IconButton>
+                        </>
+                    }
                 </Toolbar>
             </AppBar>
         </Fragment>);

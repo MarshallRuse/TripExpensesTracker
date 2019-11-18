@@ -23,8 +23,9 @@ const AppRouter = () => {
     const [dialog, dialogDispatch] = useReducer(dialogReducer, { 
         dialogOpen: false,
         editMode: false,
-        selectionToEdit: {}
-        });
+        itemToEdit: {},
+        sortDialogOpen: false
+    });
     const [summaryDrawer, summaryDrawerDispatch] = useReducer(summaryDrawerReducer, {
         drawerOpen: false
     })

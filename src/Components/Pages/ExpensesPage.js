@@ -1,11 +1,22 @@
 import React, { Fragment, useEffect, useCallback, useContext, useState } from 'react';
 import { withStyles } from '@material-ui/styles';
 import { 
+    Dialog,
+    DialogTitle,
+    DialogContent,
     Drawer, 
+    FormControl,
+    FormControlLabel,
+    FormLabel,
     Grid, 
+    IconButton,
     Paper, 
+    Radio,
+    RadioGroup,
     Typography
  } from '@material-ui/core';
+import { HighlightOff } from '@material-ui/icons';
+
 import moment from 'moment';
 import ExpenseCard from '../Elements/ExpenseCard';
 import ExpensesSummary from '../Elements/ExpensesSummary';
@@ -16,13 +27,9 @@ import SummaryDrawerContext from '../../context/SummaryDrawerContext';
 
 import fixerKey from '../../APIKeys/fixer';
 
+import { sortByDateTime, sortByCost, sortByCountry, sortByCategory } from '../../utils/sortingFunctions';
+
 const styles = theme => ({
-    breadcrumbs: {
-        display: 'flex',
-        justifyContent: 'center',
-        paddingTop: '10px',
-        paddingBottom: '10px'
-    },
     drawer: {
         flexShrink: 0,
         zIndex: [theme.zIndex.appBar - 10, '!important']
@@ -36,10 +43,23 @@ const styles = theme => ({
         flex: 1,
         height: 'calc(100% - 56px - 56px)'
     },
+    groupHeading: {
+        // backgroundColor: '#fafafa',
+        padding: '10px',
+        width: '100%',
+    },
+    input: {
+        marginTop: '10px',
+        marginBottom: '20px'
+    },
     paper: { 
         padding: 20,  
         overflowY: 'auto',
         height: '100%', 
+    },
+    spaceApart: {
+        display: 'flex',
+        justifyContent: 'space-around'
     },
     toolbar: theme.mixins.toolbar
 })
@@ -48,16 +68,19 @@ const styles = theme => ({
 const ExpensesPage = ({ classes, match }) => {
     
     const { page, pageDispatch } = useContext(PageContext);
-    const { dialogDispatch } = useContext(DialogContext);
+    const { dialog, dialogDispatch } = useContext(DialogContext);
     const { summaryDrawer, summaryDrawerDispatch } = useContext(SummaryDrawerContext);
 
     const [trip, setTrip] = useState({});
     const [expenses, setExpenses] = useState([]);
+    const [groupedExpenses, setGroupedExpenses] = useState([]);
     const [fetchExpenses, setFetchExpenses] = useState(true);
+    // Sorting Functionality
+    const [sortCriteria, setSortCriteria] = useState('dateTime');
+    const [sortOrder, setSortOrder] = useState('DESC');
 
     const handleExpenseFormSubmitCreate = useCallback(async (expense) => {
         dialogDispatch({ type: 'CLOSE' });
-        console.log('Expense is: ', expense)
 
         // Convert the price to CAD for the date spent, for ease of summarizing later.
         let rate = 1;
@@ -170,7 +193,7 @@ const ExpensesPage = ({ classes, match }) => {
             handleExpenseFormSubmitEdit
         ])
     
-
+    // useEffect for fetching the trip object
     useEffect(() => {
         async function getTrip(){
             try {
@@ -186,6 +209,7 @@ const ExpensesPage = ({ classes, match }) => {
 
     }, [match.params.trip])
 
+    // useEffect for fetching the expenses
     useEffect(() => {
 
         async function getExpenses(){
@@ -206,6 +230,24 @@ const ExpensesPage = ({ classes, match }) => {
 
 
     }, [fetchExpenses, match.params.trip]);
+
+    // useEffect for grouping the expenses by sort criteria
+    useEffect(() => {
+        
+        switch(sortCriteria){
+            case 'dateTime':
+                return setGroupedExpenses(sortByDateTime(expenses, sortOrder));
+            case 'cost':
+                return setGroupedExpenses(sortByCost(expenses, sortOrder));
+            case 'country':
+                return setGroupedExpenses(sortByCountry(expenses, sortOrder));
+            case 'category':
+                return setGroupedExpenses(sortByCategory(expenses, sortOrder));
+            default:
+                return setGroupedExpenses(sortByDateTime(expenses, 'DESC'));
+        }
+        
+    }, [expenses, sortCriteria, sortOrder])
 
 
     const editExpense = (expenseID) => {
@@ -229,16 +271,41 @@ const ExpensesPage = ({ classes, match }) => {
         }
     }
 
+    // Sort Dialog Functionality
+    const handleCloseSortDialog = () => {
+        dialogDispatch({ type: 'CLOSE_SORT_DIALOG' });
+    }
+
+    const handleSortCriteriaChange = (event) => {
+        setSortCriteria(event.target.value);
+    }
+
+    const handleSortOrderChange = (event) => {
+        setSortOrder(event.target.value);
+    }
+
 
     return (
         <Fragment>
                 <div className={classes.toolbar} />
                 <Grid container direction='row' justify='center' alignItems='center'>
-                    { (expenses && expenses.length > 0)
-                        ?   expenses.map((expense, index) => (
-                            <Grid item xs={10} key={index}>
-                                <ExpenseCard expense={expense} editExpense={editExpense} deleteExpense={deleteExpense} />
-                            </Grid>)) 
+                    { (groupedExpenses && groupedExpenses.length > 0)
+                        ?   groupedExpenses.map((group, groupIndex) => (
+                            <Fragment key={'group' + groupIndex}>
+                                {group.groupOnValue && 
+                                    <Typography variant='h6' align='left' color='primary' className={classes.groupHeading}>
+                                        {group.groupOnValue}
+                                    </Typography>
+                                }
+                                {group.groupedItems.map((expense, expenseIndex) => (
+                                    <Grid item xs={10} key={'expense' + groupIndex + expenseIndex}>
+                                        <ExpenseCard 
+                                            expense={expense} 
+                                            editExpense={editExpense} 
+                                            deleteExpense={deleteExpense} />
+                                    </Grid>
+                                ))}
+                            </Fragment>)) 
                         :   <Grid item xs={10}>
                                 <Paper className={classes.paper}>
                                     <Typography variant='subtitle1' align='center' style={{color: '#7b7b7b'}}>
@@ -248,7 +315,79 @@ const ExpensesPage = ({ classes, match }) => {
                             </Grid>
                     }
                 </Grid>
+                
+                {/* Sort Dialog */}
+                <Dialog 
+                open={dialog.sortDialogOpen} 
+                onClose={handleCloseSortDialog}
+            >
+                <DialogTitle id="form-dialog-title">Sort Expenses</DialogTitle>
+                <DialogContent>
+                    <Grid container direction='row' justify='space-around' wrap='nowrap'>
+                        <Grid item xs={6}>
+                        <FormControl component="fieldset" className={classes.formControl}>
+                        <FormLabel component="legend">Sort Criteria</FormLabel>
+                        <RadioGroup aria-label="sort-criteria" name="sortCriteria" value={sortCriteria} onChange={handleSortCriteriaChange}>
+                            <FormControlLabel 
+                                value="dateTime" 
+                                control={<Radio color='primary' />} 
+                                label="Date & Time" 
+                            />
+                            <FormControlLabel
+                                value="cost" 
+                                control={<Radio color='primary' />} 
+                                label="Cost" 
+                            />
+                            <FormControlLabel 
+                                value="country" 
+                                control={<Radio color='primary' />} 
+                                label="Country" 
+                            />
+                            <FormControlLabel
+                                value="categoryCost"
+                                control={<Radio color='primary' />}
+                                label="Category (Cost)"
+                            />
+                            <FormControlLabel
+                                value="categoryNumTransaction"
+                                control={<Radio color='primary' />}
+                                label="Category (# Transactions)"
+                            />
+                        </RadioGroup>
+                    </FormControl>
+                        </Grid>
+                        <Grid item xs={6}>
+                        <FormControl component="fieldset" className={classes.formControl}>
+                        <FormLabel component="legend">Order</FormLabel>
+                        <RadioGroup aria-label="sort-order" name="sortOrder" value={sortOrder} onChange={handleSortOrderChange}>
+                            <FormControlLabel
+                                value="ASC"
+                                control={<Radio color="secondary" />}
+                                label="Ascending"
+                            />
+                            <FormControlLabel
+                                value="DESC"
+                                control={<Radio color="secondary" />}
+                                label="Descending"
+                            />
+                        </RadioGroup>
+                    </FormControl>
+                        </Grid>
+                    </Grid>
+                    
+                    
+                    <br />
+                    <div className={[classes.input, classes.spaceApart].join(' ')}>
+                        <IconButton 
+                            onClick={handleCloseSortDialog}
+                        >
+                            <HighlightOff style={{marginRight: '5px'}} fontSize='large' />
+                        </IconButton>
+                    </div>
+                </DialogContent>
+            </Dialog>
         
+            {/* Expenses Summary */}
             <Drawer 
                 className={classes.drawer} 
                 anchor="bottom"
@@ -258,6 +397,7 @@ const ExpensesPage = ({ classes, match }) => {
                 <ExpensesSummary trip={trip} expenses={expenses} />
                 <div className={classes.toolbar} />
             </Drawer>
+
         </Fragment>
         
     )
