@@ -2,6 +2,7 @@
 const path = require('path');
 const express = require('express');
 const app = express();
+const port = process.env.PORT || 3001;
 
 const uuidv4 = require('uuid/v4');
 
@@ -46,8 +47,6 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(publicDirectoryPath, 'index.html'));
 });
 
-
-const port = process.env.PORT || 3001;
 
 app.listen(port, () => {
     console.log('Server is up on port ' + port);
