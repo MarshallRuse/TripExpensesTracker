@@ -66,7 +66,7 @@ class ExpenseCard extends Component {
 
     render() {
 
-        const { classes, expense } = this.props;
+        const { classes, expense, sortCriteria } = this.props;
         const currencySymbol = getSymbolFromCurrency(expense.cost.currency);
 
         return (
@@ -80,6 +80,10 @@ class ExpenseCard extends Component {
                         <Typography variant='body2' color="textSecondary">
                             {expense.category}
                         </Typography>
+                        <Typography variant='body1'>
+                            {sortCriteria !== 'dateTime' && `${moment(expense.dateTime).format('MMM Do, YYYY')} - `}
+                            {moment(expense.dateTime).format('hh:mm a')}
+                        </Typography>
                         {expense.location.business && 
                             <Typography variant='body2' color='primary'>
                                 {expense.location.business}
@@ -87,9 +91,6 @@ class ExpenseCard extends Component {
                         }
                         <Typography variant='body2' color='primary'>
                             {`${expense.location.city}, ${expense.location.country}`}
-                        </Typography>
-                        <Typography variant='caption'>
-                            {`${moment(expense.dateTime).format('MMM Do, YYYY')} - ${moment(expense.dateTime).format('hh:mm a')}`}
                         </Typography>
                         <Typography variant='h6' color='textPrimary'>
                             {`${currencySymbol} ${Number.parseFloat(expense.cost.amount).toFixed(2)}`}

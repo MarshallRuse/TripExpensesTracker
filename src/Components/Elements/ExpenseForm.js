@@ -19,7 +19,7 @@ import LocationAutocomplete from './LocationAutocomplete';
 import DialogContext from '../../context/DialogContext';
 import PageContext from '../../context/PageContext';
 
-import currencyList from '../../currency_list';
+import currencyList from '../../utils/currency_list';
 import '../../CSS/GooglePlaces.css'
 
 const paymentMethods = ['Cash', 'Debit', 'Credit - Visa', 'Credit - Mastercard', 'Credit - AmEx', 'Credit - Other', 'Cheque'];
@@ -32,6 +32,9 @@ const styles = theme => ({
     input: {
         marginTop: '10px',
         marginBottom: '20px'
+    },
+    requiredLabel: {
+        color: theme.palette.secondary
     },
     sectionTitle: {
         paddingBottom: '10px',
@@ -154,10 +157,15 @@ const ExpenseForm = ({ classes, ...other }) => {
 
         const numberCost = Number.parseFloat(cost);
 
+        let defaultTitle = ''
+        if (title.length === 0){
+            defaultTitle = category;
+        }
+
         if (dialog.editMode){
             expenseToSubmit = {
                 ...dialog.itemToEdit,
-                title, 
+                title: title.length === 0 ? defaultTitle : title, 
                 numberCost,
                 category,
                 currency,
@@ -171,7 +179,7 @@ const ExpenseForm = ({ classes, ...other }) => {
             }
         } else {
             expenseToSubmit = {
-                title,
+                title: title.length === 0 ? defaultTitle : title,
                 numberCost,
                 category,
                 currency,
@@ -272,12 +280,13 @@ const ExpenseForm = ({ classes, ...other }) => {
                 <strong>Expense Info</strong>
             </Typography>
             <TextField
-                label='Expense Title *'
+                label='Expense Title'
                 value={title}
                 onChange={handleTitleChange}
                 margin='normal'
                 variant='outlined'
                 className={classes.input}
+                placeholder={category}
                 fullWidth
             />
             <br />
@@ -418,7 +427,7 @@ const ExpenseForm = ({ classes, ...other }) => {
                     color="primary" 
                     variant='contained'
                     onClick={onSubmit}
-                    disabled={!title || !cost || !category || !selectedDateTime}
+                    disabled={!cost || !category || !selectedDateTime}
                 >
                     <CheckCircle style={{marginRight: '5px'}} fontSize='small' />
                     {dialog.editMode ? 'Edit' : 'Create'}

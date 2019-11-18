@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Fragment, Component } from 'react';
 import { Link } from 'react-router-dom';
 import moment from 'moment';
 import { withStyles } from '@material-ui/styles';
@@ -12,7 +12,10 @@ import {
     Typography 
 } from '@material-ui/core';
 import { MoreHoriz } from '@material-ui/icons';
+
+import FlagIcon from '../../utils/flagIcons';
 import getSymbolFromCurrency from 'currency-symbol-map';
+import countryCodes from '../../utils/countryCodes';
 
 
 const styles = theme => ({
@@ -29,6 +32,11 @@ const styles = theme => ({
         marginTop: '5px',
 
     },
+    flags: {
+        marginRight: '10px',
+        marginTop: '5px',
+        marginBottom: '2px'
+    },
     link: {
         color: 'inherit',
         textDecoration: 'none'
@@ -42,23 +50,46 @@ class TripCard extends Component {
         anchorEl: undefined,
         expenses: [],
         dateRange: '',
+        numUniqueCities: 0,
         totalCost: 0
     }
 
     async componentDidMount(){
+        this.fetchAndSetExpensesData();
+    }
+    
+    componentDidUpdate(prevProps){
+        if (prevProps.trip !== this.props.trip){
+            this.fetchAndSetExpensesData();
+        }
+    }
+
+    async fetchAndSetExpensesData(){
         try {
             const response = await fetch(`/get_expenses/${this.props.trip._id}`);
             const expenses = await response.json();
 
             let dateRange = '';
+            let numUniqueCities = 0;
+            let uniqueCountries = [];
             let totalCost = 0;
 
             if (expenses.length > 0){
+                // Calculate date range
                 const dates = expenses.map(expense => moment(expense.dateTime));
                 const maxDate = moment.max(dates);
                 const minDate = moment.min(dates);
-                dateRange = `${minDate.format('MMM Do YY')} - ${maxDate.format('MMM Do YY')}`
+                dateRange = `${minDate.format('MMM D, YYYY')} - ${maxDate.format('MMM D, YYYY')}`
 
+                // Calculate number of cities
+                const cities = expenses.map((expense) => expense.location.city);
+                numUniqueCities = cities.filter((city, index, self) => self.indexOf(city) === index).length;
+
+                // Get unique countries
+                const countries = expenses.map((expense) => expense.location.country);
+                uniqueCountries = countries.filter((country, index, self) => self.indexOf(country) === index);
+
+                // Calculate total cost
                 expenses.forEach((expense) => {
                     totalCost += expense.cost.amount;
                 });
@@ -68,6 +99,8 @@ class TripCard extends Component {
             this.setState(() => ({
                 expenses,
                 dateRange,
+                numUniqueCities,
+                uniqueCountries,
                 totalCost
             }));
         } catch (err){
@@ -123,6 +156,24 @@ class TripCard extends Component {
                         <Typography varaint='body2' color="textSecondary">
                             { this.state.dateRange && this.state.dateRange }
                         </Typography>
+                        <Typography variant='body2' color='primary'>
+                            {`Cities visited: ${this.state.numUniqueCities}`}
+                        </Typography>
+                        {this.state.uniqueCountries && 
+                            this.state.uniqueCountries.map((country) => {
+                                const countryObj = countryCodes.filter((c) => c.name.toLowerCase() === country.toLowerCase());
+                                if (countryObj.length > 0){
+                                    const code = countryObj[0].code;
+                                    return (
+                                        <FlagIcon key={code} code={code} size='2x' className={classes.flags} />
+                                    )
+                                } else {
+                                    // Just to shut the compiler up
+                                    return (<Fragment key={country}></Fragment>); 
+                                }
+                            
+                            
+                        })}
                         <Typography variant='h6' color='textPrimary' className={classes.costDiv}>
                             {`${currencySymbol} ${Number.parseFloat(this.state.totalCost).toFixed(2)}`}
                             <Typography variant='caption'>

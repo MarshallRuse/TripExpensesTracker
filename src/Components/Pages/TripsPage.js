@@ -1,15 +1,27 @@
 import React, { Fragment, useState, useContext, useEffect, useCallback } from 'react';
 import { withStyles } from '@material-ui/styles';
 import { 
-    Grid, 
-    Paper, 
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    FormControl,
+    FormControlLabel,
+    FormLabel,
+    Grid,
+    IconButton, 
+    Paper,
+    Radio,
+    RadioGroup, 
     Typography
  } from '@material-ui/core';
+ import { HighlightOff } from '@material-ui/icons';
 
 import TripCard from '../Elements/TripCard';
 
 import PageContext from '../../context/PageContext';
 import DialogContext from '../../context/DialogContext';
+
+import { sortTripsByDateTime, sortTripsByCost, sortTripsByNumCities } from '../../utils/sortingFunctions';
 
 
 const styles = theme => ({
@@ -26,19 +38,31 @@ const styles = theme => ({
         height: '100%',
         overflowY: 'auto'
     },
+    input: {
+        marginTop: '10px',
+        marginBottom: '20px'
+    },
     paper: { 
         height: '100%', 
         padding: 20,
         overflowY: 'auto' 
+    },
+    spaceApart: {
+        display: 'flex',
+        justifyContent: 'space-around'
     },
     toolbar: theme.mixins.toolbar
 })
 
 const TripsPage = ({ classes, ...other }) => {
     const { pageDispatch } = useContext(PageContext);
-    const { dialogDispatch } = useContext(DialogContext);
+    const { dialog, dialogDispatch } = useContext(DialogContext);
 
     const [trips, setTrips] = useState([]);
+    // Sorting functionality
+    const [sortedTrips, setSortedTrips] = useState([]);
+    const [sortCriteria, setSortCriteria] = useState('dateTime');
+    const [sortOrder, setSortOrder] = useState('DESC');
 
     const handleTripFormSubmitCreate = useCallback(async (trip) => {
         dialogDispatch({ type: 'CLOSE' });
@@ -86,7 +110,6 @@ const TripsPage = ({ classes, ...other }) => {
             // *******
             // Replace in same position, so edited trip doesn't go to end of array
             const tripToReplaceIndex = trips.findIndex((trip) => trip._id === newTrip._id );
-            console.log('Trip to replace index, ', tripToReplaceIndex)
             let newTrips = [...trips];
             newTrips[tripToReplaceIndex] = newTrip;
 
@@ -125,14 +148,30 @@ const TripsPage = ({ classes, ...other }) => {
         })
     }, [pageDispatch, dialogDispatch, handleTripFormSubmitCreate, handleTripFormSubmitEdit]);
 
-    // Watch for changes to list of Trips
-    // useEffect(() => {
-    //     async function loadTripsOnUpdate(){
-    //         const loadedTrips = await loadTrips();
-    //         setTrips(loadedTrips);
-    //     }
-    //     loadTripsOnUpdate();
-    // }, [trips]);
+    // useEffect for grouping the trips by sort criteria
+    useEffect(() => {
+        
+        async function selectSort(){
+            let sortedTrips = [];
+            switch(sortCriteria){
+                case 'dateTime':
+                    sortedTrips = await sortTripsByDateTime(trips, sortOrder);
+                    break;
+                case 'cost':
+                    sortedTrips = await sortTripsByCost(trips, sortOrder);
+                    break;
+                case 'numCities':
+                    sortedTrips = await sortTripsByNumCities(trips, sortOrder);
+                    break;
+                default:
+                    sortedTrips = await sortTripsByDateTime(trips, 'DESC');
+            }
+            
+            setSortedTrips(sortedTrips);
+        }
+        selectSort();
+        
+    }, [trips, sortCriteria, sortOrder])
 
 
     // BACKEND-FACING OPERATIONS
@@ -168,17 +207,33 @@ const TripsPage = ({ classes, ...other }) => {
         }
     }
 
+     // Sort Dialog Functionality
+     const handleCloseSortDialog = () => {
+        dialogDispatch({ type: 'CLOSE_SORT_DIALOG' });
+    }
+
+    const handleSortCriteriaChange = (event) => {
+        setSortCriteria(event.target.value);
+    }
+
+    const handleSortOrderChange = (event) => {
+        setSortOrder(event.target.value);
+    }
+
+
+
 
     return (
         <Fragment>
             <div className={classes.toolbar} />
             <Grid container direction='row' justify='center' alignItems='center'>
-                { (trips && trips.length > 0) 
-                    ?   trips.map((trip, index) => (
-                            <Grid item xs={10} key={index}>
-                                <TripCard trip={trip} editTrip={editTrip} deleteTrip={deleteTrip} />
-                            </Grid>))
-                    
+                { (sortedTrips && sortedTrips.length > 0) 
+                    ?   sortedTrips.map((trip, index) => (
+                                <Grid item xs={10} key={index}>
+                                    <TripCard trip={trip} editTrip={editTrip} deleteTrip={deleteTrip} />
+                                </Grid>
+                            )
+                        )
                     :   <Grid item xs={10}>
                             <Paper className={classes.paper}>
                                 <Typography variant='subtitle1' align='center' style={{color: '#7b7b7b'}}>
@@ -188,6 +243,66 @@ const TripsPage = ({ classes, ...other }) => {
                         </Grid>
                 }
             </Grid>
+            {/* Sort Dialog */}
+            <Dialog 
+                open={dialog.sortDialogOpen} 
+                onClose={handleCloseSortDialog}
+            >
+                <DialogTitle id="form-dialog-title">Sort Trips</DialogTitle>
+                <DialogContent>
+                    <Grid container direction='row' justify='space-around' wrap='nowrap'>
+                        <Grid item xs={6}>
+                        <FormControl component="fieldset" className={classes.formControl}>
+                        <FormLabel component="legend">Sort Criteria</FormLabel>
+                        <RadioGroup aria-label="sort-criteria" name="sortCriteria" value={sortCriteria} onChange={handleSortCriteriaChange}>
+                            <FormControlLabel 
+                                value="dateTime" 
+                                control={<Radio color='primary' />} 
+                                label="Date" 
+                            />
+                            <FormControlLabel
+                                value="cost" 
+                                control={<Radio color='primary' />} 
+                                label="Cost" 
+                            />
+                            <FormControlLabel 
+                                value="numCities" 
+                                control={<Radio color='primary' />} 
+                                label="# Cities" 
+                            />
+                        </RadioGroup>
+                    </FormControl>
+                        </Grid>
+                        <Grid item xs={6}>
+                        <FormControl component="fieldset" className={classes.formControl}>
+                        <FormLabel component="legend">Order</FormLabel>
+                        <RadioGroup aria-label="sort-order" name="sortOrder" value={sortOrder} onChange={handleSortOrderChange}>
+                            <FormControlLabel
+                                value="ASC"
+                                control={<Radio color="secondary" />}
+                                label="Ascending"
+                            />
+                            <FormControlLabel
+                                value="DESC"
+                                control={<Radio color="secondary" />}
+                                label="Descending"
+                            />
+                        </RadioGroup>
+                    </FormControl>
+                        </Grid>
+                    </Grid>
+                    
+                    
+                    <br />
+                    <div className={[classes.input, classes.spaceApart].join(' ')}>
+                        <IconButton 
+                            onClick={handleCloseSortDialog}
+                        >
+                            <HighlightOff style={{marginRight: '5px'}} fontSize='large' />
+                        </IconButton>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </Fragment>
         
         )

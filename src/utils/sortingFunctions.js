@@ -1,5 +1,8 @@
 import moment from 'moment';
 
+/////////////
+// Expenses 
+/////////////
 export const sortByDateTime = (expenses, order) => {
 
     // Create an array of unique dates in the expenses
@@ -21,7 +24,6 @@ export const sortByDateTime = (expenses, order) => {
     })
 
     return expensesGroupedByUniqueDates;
-
 }
 
 export const sortByCost = (expenses, order) => {
@@ -59,7 +61,7 @@ export const sortByCountry = (expenses, order) => {
     return expensesGroupedByCountry;
 }
 
-export const sortByCategory = (expenses, order) => {
+export const sortByCategoryCost = (expenses, order) => {
 
     const categories = expenses.map((expense) => expense.category);
     const uniqueCategories = categories.filter((category, index, self) => self.indexOf(category) === index);
@@ -79,10 +81,126 @@ export const sortByCategory = (expenses, order) => {
 
     });
 
-    const sortedExpensesGroupedByCountry = order === 'ASC'
+    const sortedExpensesGroupedByCategory = order === 'ASC'
                                             ?   expensesGroupedByCategory.sort((groupA, groupB) => groupA.sumOfExpensesCost - groupB.sumOfExpensesCost)
                                             :   expensesGroupedByCategory.sort((groupA, groupB) => groupB.sumOfExpensesCost - groupA.sumOfExpensesCost);
 
-    return sortedExpensesGroupedByCountry;
+    return sortedExpensesGroupedByCategory;
 
+}
+
+export const sortByCategoryTransactions = (expenses, order) => {
+
+    const categories = expenses.map((expense) => expense.category);
+    const uniqueCategories = categories.filter((category, index, self) => self.indexOf(category) === index);
+    const expensesGroupedByCategory = uniqueCategories.map((category) => {
+
+        // Within category, add up costs for sorting order of categories
+        const expensesByCategory = expenses.filter((expense) => expense.category === category);
+        const sortedExpensesByCategory = order === 'ASC' 
+                                            ?   expensesByCategory.sort((expenseA, expenseB) => expenseA.cost.inEUR - expenseB.cost.inEUR)
+                                            :   expensesByCategory.sort((expenseA, expenseB) => expenseB.cost.inEUR - expenseA.cost.inEUR);
+        return {
+            groupOnValue: category,
+            groupedItems: sortedExpensesByCategory,
+        }
+
+    });
+
+    const sortedExpensesGroupedByCategory = order === 'ASC'
+                                            ?   expensesGroupedByCategory.sort((groupA, groupB) => groupA.groupedItems.length - groupB.groupedItems.length)
+                                            :   expensesGroupedByCategory.sort((groupA, groupB) => groupB.groupedItems.length - groupA.groupedItems.length);
+
+    return sortedExpensesGroupedByCategory;
+
+}
+
+/////////////
+// Trips
+/////////////
+
+export const sortTripsByDateTime = async (trips, order) => {
+
+    try {
+        const tripsWithStartDate = await Promise.all(trips.map(async (trip) => {
+            const response = await fetch(`/get_expenses/${trip._id}`);
+            const expenses = await response.json();
+
+            // Trips without expenses are sorted as the latest dates, so give them
+            // an arbitrary earliest date to sort them to the bottom when descended sort order passed
+            let dates = [];
+            if (expenses.length > 0){
+                dates = expenses.map((expense) => moment(expense.dateTime));
+            } else {
+                dates = [moment(0)];
+            }
+            
+            const earliestDate = moment.min(dates);
+            trip.expenses = expenses;
+            trip.earliestDate = earliestDate;
+
+            return trip;
+        }));
+
+
+        const sortedTrips = order === 'ASC' 
+                            ? tripsWithStartDate.sort((tripA, tripB) => tripA.earliestDate.diff(tripB.earliestDate, 'days'))
+                            : tripsWithStartDate.sort((tripA, tripB) => tripB.earliestDate.diff(tripA.earliestDate, 'days'));
+        return sortedTrips;
+    } catch (err) {
+        console.log('Could not retrieve trip\'s expenses for sorting: ', err);
+        return trips;
+    }
+}
+
+export const sortTripsByCost = async (trips, order) => {
+
+    try {
+        const tripsWithTotalCost = await Promise.all(trips.map(async (trip) => {
+
+            const response = await fetch(`/get_expenses/${trip._id}`);
+            const expenses = await response.json();
+
+            const totalCostOfTrip = expenses.reduce((total, expense) => total + expense.cost.inEUR, 0);
+            trip.totalCost = totalCostOfTrip;
+
+            return trip;
+            
+        }));
+        const sortedTrips = order === 'ASC' 
+                            ? tripsWithTotalCost.sort((tripA, tripB) => tripA.totalCost - tripB.totalCost)
+                            : tripsWithTotalCost.sort((tripA, tripB) => tripB.totalCost - tripA.totalCost);
+        return sortedTrips;
+
+    } catch (err){
+        console.log('Could not retrieve trip\'s expenses for sorting: ', err);
+        return trips;
+    }
+}
+
+export const sortTripsByNumCities = async (trips, order) => {
+
+    try {
+        const tripsWithNumCities = await Promise.all(trips.map(async (trip) => {
+            const response = await fetch(`/get_expenses/${trip._id}`);
+            const expenses = await response.json();
+
+            const cities = expenses.map((expense) => expense.location.city);
+            const numUniqueCities = cities.filter((city, index, self) => self.indexOf(city) === index).length;
+
+            trip.numUniqueCities = numUniqueCities;
+            return trip;
+        }));
+
+        const sortedTrips = order === 'ASC' 
+                            ? tripsWithNumCities.sort((tripA, tripB) => tripA.numUniqueCities - tripB.numUniqueCities)
+                            : tripsWithNumCities.sort((tripA, tripB) => tripB.numUniqueCities - tripA.numUniqueCities);
+
+        return sortedTrips;
+
+
+    } catch (err) {
+        console.log('Could not retrieve trip\'s expenses for sorting: ', err);
+        return trips;
+    }
 }

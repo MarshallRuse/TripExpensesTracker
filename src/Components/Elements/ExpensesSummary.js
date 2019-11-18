@@ -21,7 +21,7 @@ import { Cancel, CheckCircle, ExpandMore } from '@material-ui/icons';
 import getSymbolFromCurrency from 'currency-symbol-map';
 import moment from 'moment';
 
-import currencyList from '../../currency_list';
+import currencyList from '../../utils/currency_list';
 import fixerKey from '../../APIKeys/fixer';
 
 

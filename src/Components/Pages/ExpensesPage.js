@@ -26,8 +26,10 @@ import DialogContext from '../../context/DialogContext';
 import SummaryDrawerContext from '../../context/SummaryDrawerContext';
 
 import fixerKey from '../../APIKeys/fixer';
+import FlagIcon from '../../utils/flagIcons';
+import countryCodes from '../../utils/countryCodes';
 
-import { sortByDateTime, sortByCost, sortByCountry, sortByCategory } from '../../utils/sortingFunctions';
+import { sortByDateTime, sortByCost, sortByCountry, sortByCategoryCost, sortByCategoryTransactions } from '../../utils/sortingFunctions';
 
 const styles = theme => ({
     drawer: {
@@ -42,6 +44,9 @@ const styles = theme => ({
     centerContent: {
         flex: 1,
         height: 'calc(100% - 56px - 56px)'
+    },
+    flag: {
+        marginLeft: '10px'
     },
     groupHeading: {
         // backgroundColor: '#fafafa',
@@ -241,8 +246,10 @@ const ExpensesPage = ({ classes, match }) => {
                 return setGroupedExpenses(sortByCost(expenses, sortOrder));
             case 'country':
                 return setGroupedExpenses(sortByCountry(expenses, sortOrder));
-            case 'category':
-                return setGroupedExpenses(sortByCategory(expenses, sortOrder));
+            case 'categoryCost':
+                return setGroupedExpenses(sortByCategoryCost(expenses, sortOrder));
+            case 'categoryNumTransactions':
+                return setGroupedExpenses(sortByCategoryTransactions(expenses, sortOrder));
             default:
                 return setGroupedExpenses(sortByDateTime(expenses, 'DESC'));
         }
@@ -293,14 +300,28 @@ const ExpensesPage = ({ classes, match }) => {
                         ?   groupedExpenses.map((group, groupIndex) => (
                             <Fragment key={'group' + groupIndex}>
                                 {group.groupOnValue && 
+                                    <>
                                     <Typography variant='h6' align='left' color='primary' className={classes.groupHeading}>
                                         {group.groupOnValue}
+                                        {(sortCriteria === 'country' 
+                                            && countryCodes.filter((c) => c.name.toLowerCase() === group.groupOnValue.toLowerCase()).length > 0)
+                                            && <FlagIcon 
+                                                    code={
+                                                        countryCodes.filter((c) => c.name.toLowerCase() === group.groupOnValue.toLowerCase())[0].code
+                                                    } 
+                                                    
+                                                    className={classes.flag}
+                                                />
+                                        }
                                     </Typography>
+                                    
+                                    </>
                                 }
                                 {group.groupedItems.map((expense, expenseIndex) => (
                                     <Grid item xs={10} key={'expense' + groupIndex + expenseIndex}>
                                         <ExpenseCard 
                                             expense={expense} 
+                                            sortCriteria={sortCriteria}
                                             editExpense={editExpense} 
                                             deleteExpense={deleteExpense} />
                                     </Grid>
@@ -349,7 +370,7 @@ const ExpensesPage = ({ classes, match }) => {
                                 label="Category (Cost)"
                             />
                             <FormControlLabel
-                                value="categoryNumTransaction"
+                                value="categoryNumTransactions"
                                 control={<Radio color='primary' />}
                                 label="Category (# Transactions)"
                             />

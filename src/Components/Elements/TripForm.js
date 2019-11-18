@@ -21,7 +21,7 @@ import { Add, CheckCircle, Cancel, Delete, DeleteForever, Edit, ExpandLess, Expa
 
 import DialogContext from '../../context/DialogContext';
 
-import currencyList from '../../currency_list';
+import currencyList from '../../utils/currency_list';
 const defaultCategories = ['Food', 'Coffee', 'Tea', 'Beer', 'Wine', 'Transport', 'Activity', 'Misc.'];
 
 const styles = theme => ({
