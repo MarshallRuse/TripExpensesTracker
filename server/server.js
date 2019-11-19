@@ -2,9 +2,7 @@
 const path = require('path');
 const express = require('express');
 const app = express();
-const port = process.env.PORT || 3001;
 
-const uuidv4 = require('uuid/v4');
 
 // project files
     // mongoose for db
@@ -31,23 +29,11 @@ const expenseRouter = require('./routes/expenses');
 app.use(tripRouter);
 app.use(expenseRouter);
 
-// generate a uuid for Google Places session token
-app.get('/get_uuid', (req, res) => {
-    console.log('Hey buddy');
-    const token = uuidv4();
-    console.log('Token: ', token)
-    const tokenObj = {
-        token
-    };
-    console.log('Token Obj: ', tokenObj)
-    res.status(200).json(tokenObj);
-});
-
 app.get('*', (req, res) => {
     res.sendFile(path.join(publicDirectoryPath, 'index.html'));
 });
 
-
+const port = process.env.PORT || 3001;
 app.listen(port, () => {
     console.log('Server is up on port ' + port);
 });
