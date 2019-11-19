@@ -22,7 +22,6 @@ import getSymbolFromCurrency from 'currency-symbol-map';
 import moment from 'moment';
 
 import currencyList from '../../utils/currency_list';
-import fixerKey from '../../APIKeys/fixer';
 
 
 const styles = theme => ({
@@ -74,7 +73,7 @@ const ExpensesSummary = ({ trip, expenses, classes }) => {
             });
             
             if (preferredCurrency !== 'EUR'){
-                const response = await fetch(`http://data.fixer.io/api/latest?access_key=${fixerKey}&symbols=${preferredCurrency}`);
+                const response = await fetch(`http://data.fixer.io/api/latest?access_key=${process.env.REACT_APP_FIXER_API_KEY}&symbols=${preferredCurrency}`);
                 const responseJSON = await response.json();
                 const exchangeRate = responseJSON.rates[preferredCurrency];
                 setRate(exchangeRate);

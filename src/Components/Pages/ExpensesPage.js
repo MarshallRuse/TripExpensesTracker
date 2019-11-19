@@ -25,7 +25,6 @@ import PageContext from '../../context/PageContext';
 import DialogContext from '../../context/DialogContext';
 import SummaryDrawerContext from '../../context/SummaryDrawerContext';
 
-import fixerKey from '../../APIKeys/fixer';
 import FlagIcon from '../../utils/flagIcons';
 import countryCodes from '../../utils/countryCodes';
 
@@ -93,7 +92,7 @@ const ExpensesPage = ({ classes, match }) => {
             try {
                 const dateFormatted = moment(expense.dateTime).format('YYYY-MM-DD');
                 const fromSymbol = expense.cost.currency;
-                const url = `http://data.fixer.io/api/${dateFormatted}?access_key=${fixerKey}&symbols=${fromSymbol}`;
+                const url = `http://data.fixer.io/api/${dateFormatted}?access_key=${process.env.REACT_APP_FIXER_API_KEY}&symbols=${fromSymbol}`;
                 const response = await fetch(url);
                 const responseJSON = await response.json();
                 rate = responseJSON.rates[fromSymbol]
@@ -140,7 +139,7 @@ const ExpensesPage = ({ classes, match }) => {
             try {
                 const dateFormatted = moment(expense.dateTime).format('YYYY-MM-DD');
                 const fromSymbol = expense.cost.currency;
-                const url = `http://data.fixer.io/api/${dateFormatted}?access_key=${fixerKey}&symbols=${fromSymbol}`;
+                const url = `http://data.fixer.io/api/${dateFormatted}?access_key=${process.env.REACT_APP_FIXER_API_KEY}&symbols=${fromSymbol}`;
                 const response = await fetch(url);
                 const responseJSON = await response.json();
                 rate = responseJSON.rates[fromSymbol]

@@ -7,7 +7,6 @@ import { withStyles } from '@material-ui/core/styles';
 
 import Script from 'react-load-script';
 
-import APIKey from '../../APIKeys/googlePlaces';
 
 
 const styles = theme => ({
@@ -94,11 +93,11 @@ class LocationAutocomplete extends React.Component {
     }
 
     render(){
-
+        console.log('Places API Key: ', process.env.REACT_APP_PLACES_API_KEY)
         return (
             <>
                 <Script 
-                    url={`https://maps.googleapis.com/maps/api/js?key=${APIKey}&libraries=places`}          
+                    url={`https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_PLACES_API_KEY}&libraries=places`}          
                     onLoad={this.handleScriptLoad}        
                 /> 
                 <TextField 

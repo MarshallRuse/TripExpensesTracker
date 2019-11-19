@@ -28,7 +28,7 @@
     "heroku-postbuild": "npm install && npm run build",
     "dev-start": "react-scripts start",
     "server": "node server/server.js",
-    "dev-server": "nodemon server/server.js",
+    "dev-server": "env-cmd -f ./config/dev.env nodemon server/server.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -48,5 +48,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "env-cmd": "^10.0.1"
   }
 }
