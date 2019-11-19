@@ -1,7 +1,10 @@
 // npm packages
 const path = require('path');
 const express = require('express');
+const cors = require('cors');
 const app = express();
+
+app.use(cors());
 
 
 // project files
@@ -13,7 +16,12 @@ require('../db/connection/mongoose');
 const publicDirectoryPath = path.join(__dirname, '..', 'public');
 
 // Setup static directory to serve
-app.use(express.static(publicDirectoryPath));
+if (process.env.NODE_ENV === 'production'){
+    app.use(express.static(path.resolve(__dirname, 'build')));
+} else {
+    app.use(express.static(publicDirectoryPath));
+}
+
 
 // Setup default JSON usage
 app.use(express.json({ limit: '20mb' }));
@@ -29,9 +37,16 @@ const expenseRouter = require('./routes/expenses');
 app.use(tripRouter);
 app.use(expenseRouter);
 
-app.get('*', (req, res) => {
-    res.sendFile(path.join(publicDirectoryPath, 'index.html'));
-});
+if (process.env.NODE_ENV === 'production'){
+    app.get('*', (req, res) => {
+        res.sendFile(path.resolve(__dirname, 'build', 'index.html'));
+    });
+} else{
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(publicDirectoryPath, 'index.html'));
+    });
+}
+
 
 const port = process.env.PORT;
 app.listen(port, () => {
