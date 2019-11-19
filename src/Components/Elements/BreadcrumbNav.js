@@ -5,7 +5,7 @@ import { NavigateNext } from '@material-ui/icons';
 
 import { withStyles } from '@material-ui/styles';
 
-import PageContext from '../../context/PageContext';
+import PageContext from '../../context/pageContext';
 
 
 const styles = theme => ({

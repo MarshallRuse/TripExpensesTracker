@@ -4,7 +4,7 @@ import { AppBar, Toolbar, Typography } from '@material-ui/core';
 
 
 import BreadcrumbNav from './BreadcrumbNav';
-import PageContext from '../../context/PageContext';
+import PageContext from '../../context/pageContext';
 
 
 const styles = theme => ({

@@ -21,8 +21,8 @@ import moment from 'moment';
 import ExpenseCard from '../Elements/ExpenseCard';
 import ExpensesSummary from '../Elements/ExpensesSummary';
 
-import PageContext from '../../context/PageContext';
-import DialogContext from '../../context/DialogContext';
+import PageContext from '../../context/pageContext';
+import DialogContext from '../../context/dialogContext';
 import SummaryDrawerContext from '../../context/SummaryDrawerContext';
 
 import FlagIcon from '../../utils/flagIcons';

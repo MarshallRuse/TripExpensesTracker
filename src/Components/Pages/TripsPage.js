@@ -18,8 +18,8 @@ import {
 
 import TripCard from '../Elements/TripCard';
 
-import PageContext from '../../context/PageContext';
-import DialogContext from '../../context/DialogContext';
+import PageContext from '../../context/pageContext';
+import DialogContext from '../../context/dialogContext';
 
 import { sortTripsByDateTime, sortTripsByCost, sortTripsByNumCities } from '../../utils/sortingFunctions';
 

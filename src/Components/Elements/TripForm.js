@@ -19,7 +19,7 @@ import {
 } from '@material-ui/core';
 import { Add, CheckCircle, Cancel, Delete, DeleteForever, Edit, ExpandLess, ExpandMore } from '@material-ui/icons';
 
-import DialogContext from '../../context/DialogContext';
+import DialogContext from '../../context/dialogContext';
 
 import currencyList from '../../utils/currency_list';
 const defaultCategories = ['Food', 'Coffee', 'Tea', 'Beer', 'Wine', 'Transport', 'Activity', 'Misc.'];

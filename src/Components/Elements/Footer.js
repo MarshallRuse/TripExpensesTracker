@@ -8,8 +8,8 @@ import {
 } from '@material-ui/core';
 import { Add, BarChart, FilterList } from '@material-ui/icons';
 
-import PageContext from '../../context/PageContext';
-import DialogContext from '../../context/DialogContext';
+import PageContext from '../../context/pageContext';
+import DialogContext from '../../context/dialogContext';
 import SummaryDrawerContext from '../../context/SummaryDrawerContext';
 
 

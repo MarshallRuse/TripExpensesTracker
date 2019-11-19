@@ -8,8 +8,8 @@ import MomentUtils from '@date-io/moment';
 import TripForm from './TripForm';
 import ExpenseForm from './ExpenseForm';
 
-import DialogContext from '../../context/DialogContext';
-import PageContext from '../../context/PageContext';
+import DialogContext from '../../context/dialogContext';
+import PageContext from '../../context/pageContext';
 
 const FormDialog = ({ open, closeDialog }) => {
 

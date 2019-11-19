@@ -8,10 +8,10 @@ import ExpensesPage from '../Components/Pages/ExpensesPage';
 import FormDialog from '../Components/Elements/FormDialog';
 
 // Page
-import PageContext from '../context/PageContext';
+import PageContext from '../context/pageContext';
 import pageReducer from '../reducers/pageReducer';
 // Dialog
-import DialogContext from '../context/DialogContext';
+import DialogContext from '../context/dialogContext';
 import dialogReducer from '../reducers/dialogReducer';
 // Summary Drawer
 import SummaryDrawerContext from '../context/SummaryDrawerContext';

@@ -16,8 +16,8 @@ import { DateTimePicker } from "@material-ui/pickers";
 import { Add, Cancel, CheckCircle } from '@material-ui/icons';
 
 import LocationAutocomplete from './LocationAutocomplete';
-import DialogContext from '../../context/DialogContext';
-import PageContext from '../../context/PageContext';
+import DialogContext from '../../context/dialogContext';
+import PageContext from '../../context/pageContext';
 
 import currencyList from '../../utils/currency_list';
 import '../../CSS/GooglePlaces.css'
