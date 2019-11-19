@@ -23,7 +23,7 @@ import ExpensesSummary from '../Elements/ExpensesSummary';
 
 import PageContext from '../../context/pageContext';
 import DialogContext from '../../context/dialogContext';
-import SummaryDrawerContext from '../../context/SummaryDrawerContext';
+import DrawerContext from '../../context/drawerContext';
 
 import FlagIcon from '../../utils/flagIcons';
 import countryCodes from '../../utils/countryCodes';
@@ -73,7 +73,7 @@ const ExpensesPage = ({ classes, match }) => {
     
     const { page, pageDispatch } = useContext(PageContext);
     const { dialog, dialogDispatch } = useContext(DialogContext);
-    const { summaryDrawer, summaryDrawerDispatch } = useContext(SummaryDrawerContext);
+    const { drawer, drawerDispatch } = useContext(DrawerContext);
 
     const [trip, setTrip] = useState({});
     const [expenses, setExpenses] = useState([]);
@@ -411,8 +411,8 @@ const ExpensesPage = ({ classes, match }) => {
             <Drawer 
                 className={classes.drawer} 
                 anchor="bottom"
-                open={summaryDrawer.drawerOpen}
-                onClose={() => summaryDrawerDispatch({ type: 'CLOSE' })}
+                open={drawer.summaryDrawerOpen}
+                onClose={() => drawerDispatch({ type: 'SUMMARY_CLOSE' })}
             >
                 <ExpensesSummary trip={trip} expenses={expenses} />
                 <div className={classes.toolbar} />

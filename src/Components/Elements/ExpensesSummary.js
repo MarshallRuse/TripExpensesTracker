@@ -122,6 +122,7 @@ const ExpensesSummary = ({ trip, expenses, classes }) => {
     
     return (
         <>
+            <div className={classes.toolbar} />
             <Grid container className={classes.summaryGrid} justify='center'>
                 <Paper className={classes.paper}>
                     <Grid item xs={12}>
@@ -271,6 +272,88 @@ const ExpensesSummary = ({ trip, expenses, classes }) => {
                                                         {getSymbolFromCurrency(preferredCurrency) + ' '}
                                                         {((expenses
                                                             .filter((expense) => moment(expense.dateTime).format('MMM Do YYYY') === date)
+                                                            .map((expense) => expense.cost.inEUR)
+                                                            .reduce((total, cost) => total + cost, 0)
+                                                            ) * rate).toFixed(2) // Filter expenses by category, extract their costs in Euro, total, mult by rate
+                                                        }
+                                                        </strong>
+                                                    </Typography>
+                                                </Grid>
+                                            </Grid>)
+                                    })}
+                                    </Grid>
+                            </ExpansionPanelDetails>
+                        </ExpansionPanel>
+                    </Grid>
+                        <Grid item xs={12} className={classes.summaryRow}>
+                        <ExpansionPanel style={{width: '100%'}}>
+                            <ExpansionPanelSummary
+                            expandIcon={<ExpandMore />}
+                            aria-controls="panel1a-content"
+                            id="panel1a-header"
+                            >
+                                <Typography className={classes.heading}>Expenses by City</Typography>
+                            </ExpansionPanelSummary>
+                            <ExpansionPanelDetails>
+                                <Grid container className={classes.summaryGrid} justify='center'>
+                                { expenses
+                                    .map((expense) => expense.location.city)
+                                    .filter((city, index, self) => self.indexOf(city) === index)
+                                    .map((city) => {
+                                        return (
+                                            <Grid item xs={12} key={city} className={classes.summaryRow}>
+                                                <Grid item xs={6}>
+                                                    <Typography variant='body1'>
+                                                        {city}
+                                                    </Typography>
+                                                </Grid>
+                                                <Grid item xs={6} className={classes.summaryRowData}>
+                                                    <Typography variant='body1'>
+                                                        <strong>
+                                                        {getSymbolFromCurrency(preferredCurrency) + ' '}
+                                                        {((expenses
+                                                            .filter((expense) => expense.location.city === city)
+                                                            .map((expense) => expense.cost.inEUR)
+                                                            .reduce((total, cost) => total + cost, 0)
+                                                            ) * rate).toFixed(2) // Filter expenses by category, extract their costs in Euro, total, mult by rate
+                                                        }
+                                                        </strong>
+                                                    </Typography>
+                                                </Grid>
+                                            </Grid>)
+                                    })}
+                                    </Grid>
+                            </ExpansionPanelDetails>
+                        </ExpansionPanel>
+                    </Grid>
+                        <Grid item xs={12} className={classes.summaryRow}>
+                        <ExpansionPanel style={{width: '100%'}}>
+                            <ExpansionPanelSummary
+                            expandIcon={<ExpandMore />}
+                            aria-controls="panel1a-content"
+                            id="panel1a-header"
+                            >
+                                <Typography className={classes.heading}>Expenses by Country</Typography>
+                            </ExpansionPanelSummary>
+                            <ExpansionPanelDetails>
+                                <Grid container className={classes.summaryGrid} justify='center'>
+                                { expenses
+                                    .map((expense) => expense.location.country)
+                                    .filter((country, index, self) => self.indexOf(country) === index)
+                                    .map((country) => {
+                                        return (
+                                            <Grid item xs={12} key={country} className={classes.summaryRow}>
+                                                <Grid item xs={6}>
+                                                    <Typography variant='body1'>
+                                                        {country}
+                                                    </Typography>
+                                                </Grid>
+                                                <Grid item xs={6} className={classes.summaryRowData}>
+                                                    <Typography variant='body1'>
+                                                        <strong>
+                                                        {getSymbolFromCurrency(preferredCurrency) + ' '}
+                                                        {((expenses
+                                                            .filter((expense) => expense.location.country === country)
                                                             .map((expense) => expense.cost.inEUR)
                                                             .reduce((total, cost) => total + cost, 0)
                                                             ) * rate).toFixed(2) // Filter expenses by category, extract their costs in Euro, total, mult by rate

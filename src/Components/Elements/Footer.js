@@ -10,7 +10,7 @@ import { Add, BarChart, FilterList } from '@material-ui/icons';
 
 import PageContext from '../../context/pageContext';
 import DialogContext from '../../context/dialogContext';
-import SummaryDrawerContext from '../../context/SummaryDrawerContext';
+import DrawerContext from '../../context/drawerContext';
 
 
 const styles = theme => ({
@@ -35,7 +35,7 @@ const styles = theme => ({
 
 const Footer = ({ classes  }) => {
 
-    const { summaryDrawer, summaryDrawerDispatch } = useContext(SummaryDrawerContext); 
+    const { drawer, drawerDispatch } = useContext(DrawerContext); 
 
     const { page } = useContext(PageContext);
     const { dialogDispatch } = useContext(DialogContext);
@@ -49,38 +49,42 @@ const Footer = ({ classes  }) => {
     }
 
     const toggleDrawer = () => {
-        if (summaryDrawer.drawerOpen){
-            summaryDrawerDispatch({ type: 'CLOSE' });
+        if (drawer.summaryDrawerOpen){
+            drawerDispatch({ type: 'SUMMARY_CLOSE' });
         } else {
-            summaryDrawerDispatch({ type: 'OPEN' });
+            drawerDispatch({ type: 'SUMMARY_OPEN' });
         }
     }
 
     return (
         <Fragment>
             <div className={classes.toolbar} />
-            <div className={classes.toolbar} />
+            {page.currentPage !== 'ABOUT' && <div className={classes.toolbar} />}
             <AppBar position="fixed" color="primary" className={classes.appBar}>
                 <Toolbar>
-                    <Fab 
-                        color="secondary" 
-                        aria-label="add" 
-                        className={classes.fabButton} 
-                        onClick={openDialog}
-                    >
-                        <Add />
-                    </Fab>
-                    <IconButton color='inherit' onClick={toggleSortDialog}>
-                        <FilterList />
-                    </IconButton>
-                    {page.currentPage === 'EXPENSES' && 
-                        <>
-                            <div className={classes.grow} />
-                            <IconButton color='inherit' onClick={toggleDrawer}>
-                                <BarChart />
-                            </IconButton>
-                        </>
-                    }
+                {page.currentPage !== 'ABOUT' && 
+                    <>
+                        <Fab 
+                            color="secondary" 
+                            aria-label="add" 
+                            className={classes.fabButton} 
+                            onClick={openDialog}
+                        >
+                            <Add />
+                        </Fab>
+                        <IconButton color='inherit' onClick={toggleSortDialog}>
+                            <FilterList />
+                        </IconButton>
+                    </>
+                }     
+                {page.currentPage === 'EXPENSES' && 
+                    <>
+                        <div className={classes.grow} />
+                        <IconButton color='inherit' onClick={toggleDrawer}>
+                            <BarChart />
+                        </IconButton>
+                    </>
+                }
                 </Toolbar>
             </AppBar>
         </Fragment>);

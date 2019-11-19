@@ -74,6 +74,7 @@ const ExpenseForm = ({ classes, ...other }) => {
 
                 setTrip(trip);
                 setTripCategories(trip.categories);
+                setCurrency(trip.preferredCurrency);
              } catch(err){
                  console.log('Cannot fetch trip in Expense Form, ', err);
              }
@@ -377,7 +378,7 @@ const ExpenseForm = ({ classes, ...other }) => {
                 <strong>Date & Time</strong>
             </Typography>
             <DateTimePicker 
-                label='Date and Time'
+                label='Date and Time *'
                 value={selectedDateTime} 
                 onChange={handleDateTimeChange} 
                 showTodayButton

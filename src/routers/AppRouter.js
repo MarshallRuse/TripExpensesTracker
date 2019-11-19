@@ -1,10 +1,13 @@
 import React, { Fragment, useReducer } from 'react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
+
 import Header from '../Components/Elements/Header';
 import Footer from '../Components/Elements/Footer';
+import SideDrawer from '../Components/Elements/SideDrawer';
 import TripsPage from '../Components/Pages/TripsPage';
 import ExpensesPage from '../Components/Pages/ExpensesPage';
+import AboutPage from '../Components/Pages/AboutPage';
 import FormDialog from '../Components/Elements/FormDialog';
 
 // Page
@@ -13,9 +16,9 @@ import pageReducer from '../reducers/pageReducer';
 // Dialog
 import DialogContext from '../context/dialogContext';
 import dialogReducer from '../reducers/dialogReducer';
-// Summary Drawer
-import SummaryDrawerContext from '../context/SummaryDrawerContext';
-import summaryDrawerReducer from '../reducers/summaryDrawerReducer';
+// Drawer
+import DrawerContext from '../context/drawerContext';
+import drawerReducer from '../reducers/drawerReducer';
 
 const AppRouter = () => {
 
@@ -26,8 +29,9 @@ const AppRouter = () => {
         itemToEdit: {},
         sortDialogOpen: false
     });
-    const [summaryDrawer, summaryDrawerDispatch] = useReducer(summaryDrawerReducer, {
-        drawerOpen: false
+    const [drawer, drawerDispatch] = useReducer(drawerReducer, {
+        summaryDrawerOpen: false,
+        sideDrawerOpen: false
     })
 
     const closeDialog = () => {
@@ -36,23 +40,26 @@ const AppRouter = () => {
         dialogDispatch({ type: 'SET_ITEM_TO_EDIT', itemToEdit: undefined });
     }
 
+
     return (
         <BrowserRouter>
             <Fragment>
                 <PageContext.Provider value={{ page, pageDispatch }}>
                     <DialogContext.Provider value={{ dialog, dialogDispatch }}>
-                        <SummaryDrawerContext.Provider value={{ summaryDrawer, summaryDrawerDispatch }}>
+                        <DrawerContext.Provider value={{ drawer, drawerDispatch }}>
                             <Header />
                                 <Switch>
                                     <Route path='/' component={TripsPage} exact={true} />
                                     <Route path='/:trip/expenses' component={ExpensesPage} />
+                                    <Route path='/about' component={AboutPage} />
                                 </Switch>
+                                <SideDrawer />
                             <Footer />
                             <FormDialog 
                                 open={dialog.dialogOpen}
                                 closeDialog={closeDialog}
                             />
-                        </SummaryDrawerContext.Provider>
+                        </DrawerContext.Provider>
                     </DialogContext.Provider>
                 </PageContext.Provider>
             </Fragment>

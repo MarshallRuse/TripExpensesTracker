@@ -102,7 +102,7 @@ class LocationAutocomplete extends React.Component {
                 <TextField 
                     id='autocomplete' 
                     variant='outlined' 
-                    label='Search for Location Data' 
+                    label='Search for Business or City' 
                     value={this.state.inputValue}
                     onChange={this.handleChange}
                     fullWidth
