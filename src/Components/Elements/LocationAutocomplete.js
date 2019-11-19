@@ -93,7 +93,6 @@ class LocationAutocomplete extends React.Component {
     }
 
     render(){
-        console.log('Places API Key: ', process.env.REACT_APP_PLACES_API_KEY)
         return (
             <>
                 <Script 
