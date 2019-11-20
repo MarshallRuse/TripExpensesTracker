@@ -154,13 +154,39 @@ const AboutPage = ({ classes }) => {
                     <Typography variant='body1' className={classes.pageText}>
                     The list of expenses can be <strong>sorted</strong> by <em>Date</em>, <em>Cost</em>, <em>Country</em>, and <em>Category</em>.
                     </Typography>
+
+                    <Typography variant='h6' color='textSecondary' align='center'>
+                        Expenses Summary
+                    </Typography>
                     
                     <Typography variant='body1' className={classes.pageText}>
-                    Each trip has a <strong>summary</strong> of the expenses on the Expenses page.  The total spent is summarized in the trips preferred currency,
-                    as well as metrics such as the total number of expenses, the average expense value, the number of expenses per day, and the expenses
-                    subdivided by <em>Category</em>, <em>Date</em>, <em>City</em>, and <em>Country</em>.
+                    Each trip has a summary of the Expenses page.  
+                    <br />The total spent is summarized in the trips preferred currency.  This currency can be changed at any 
+                    time from the summary so that the metrics can be viewed however makes sense to you, whether it be CAD, USD, EUR, or <strong>30</strong> other currencies!
+                    <br />The summary also contains other interesting metrics, such as: 
                     </Typography>
-                
+                    <ul>
+                        <li>
+                            <Typography variant='body1' className={classes.listText}>
+                                total number of expenses,
+                            </Typography>
+                        </li>
+                        <li>
+                            <Typography variant='body1' className={classes.listText}>
+                                the average expense value,
+                            </Typography>
+                        </li>
+                        <li>
+                            <Typography variant='body1' className={classes.listText}>
+                                the number of expenses per day,
+                            </Typography>
+                        </li>
+                        <li>
+                            <Typography variant='body1' className={classes.listText}>
+                                and the expenses subdivided by <em>Category</em>, <em>Date</em>, <em>City</em>, and <em>Country</em>.
+                            </Typography>
+                        </li>
+                    </ul>                   
                 </Paper>
                 <Divider variant='middle' className={classes.divider} />
                 <Paper className={classes.paper}>
@@ -184,7 +210,7 @@ const AboutPage = ({ classes }) => {
                     <br />
                     <br />
                     The app makes use of <strong>Google Maps Javascript API Autocomplete </strong> library to search for the location of the user’s expense, and autofills the locations section of the form after a Place Details request.  
-                    The app also uses the <strong>Fixer.io API</strong> to fetch conversion rates between two currencies for the particular date specified for the expense.
+                    The app also uses the <strong>Exchangeratesapi.io</strong> to fetch conversion rates between two currencies for the particular date specified for the expense, as well as for the Expenses Summary.
                     </Typography>
                     <Typography variant='h6' align='center' className={classes.pageText}>Back End</Typography>
                     <Typography variant='body1' className={classes.pageText}>
