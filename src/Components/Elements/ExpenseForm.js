@@ -56,7 +56,7 @@ const ExpenseForm = ({ classes, ...other }) => {
     const [tripCategories, setTripCategories] = useState([]);
     const [category, setCategory] = useState(dialog.editMode ? dialog.itemToEdit.category : '');
     const [description, setDescription] = useState(dialog.editMode ? dialog.itemToEdit.description : '');
-    const [currency, setCurrency] = useState(dialog.editMode ? dialog.itemToEdit.cost.currency : 'CAD');
+    const [currency, setCurrency] = useState(dialog.editMode ? dialog.itemToEdit.cost.currency : '');
     const [paymentMethod, setPaymentMethod] = useState(dialog.editMode ? dialog.itemToEdit.paymentMethod :'Cash');
     const [selectedDateTime, setDateTime] = useState(dialog.editMode ? dialog.itemToEdit.dateTime : new Date());
     const [business, setBusiness] = useState(dialog.editMode ? dialog.itemToEdit.location.business : '');
@@ -74,7 +74,6 @@ const ExpenseForm = ({ classes, ...other }) => {
 
                 setTrip(trip);
                 setTripCategories(trip.categories);
-                setCurrency(trip.preferredCurrency);
              } catch(err){
                  console.log('Cannot fetch trip in Expense Form, ', err);
              }
@@ -82,7 +81,7 @@ const ExpenseForm = ({ classes, ...other }) => {
 
          fetchTripOnLoad();
 
-    }, [page.tripID])
+    }, [page.tripID, dialog.editMode])
 
     const handleTitleChange = (event) => {
         const title = event.target.value;
