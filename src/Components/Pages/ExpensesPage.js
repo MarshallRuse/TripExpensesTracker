@@ -92,7 +92,7 @@ const ExpensesPage = ({ classes, match }) => {
             try {
                 const dateFormatted = moment(expense.dateTime).format('YYYY-MM-DD');
                 const fromSymbol = expense.cost.currency;
-                const url = `http://data.fixer.io/api/${dateFormatted}?access_key=${process.env.REACT_APP_FIXER_API_KEY}&symbols=${fromSymbol}`;
+                const url = `https://api.exchangeratesapi.io/${dateFormatted}?symbols=${fromSymbol}`;
                 const response = await fetch(url);
                 const responseJSON = await response.json();
                 rate = responseJSON.rates[fromSymbol]
@@ -139,7 +139,7 @@ const ExpensesPage = ({ classes, match }) => {
             try {
                 const dateFormatted = moment(expense.dateTime).format('YYYY-MM-DD');
                 const fromSymbol = expense.cost.currency;
-                const url = `http://data.fixer.io/api/${dateFormatted}?access_key=${process.env.REACT_APP_FIXER_API_KEY}&symbols=${fromSymbol}`;
+                const url = `https://api.exchangeratesapi.io/${dateFormatted}?symbols=${fromSymbol}`;
                 const response = await fetch(url);
                 const responseJSON = await response.json();
                 rate = responseJSON.rates[fromSymbol]

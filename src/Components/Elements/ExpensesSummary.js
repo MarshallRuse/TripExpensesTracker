@@ -73,10 +73,19 @@ const ExpensesSummary = ({ trip, expenses, classes }) => {
             });
             
             if (preferredCurrency !== 'EUR'){
-                const response = await fetch(`//data.fixer.io/api/latest?access_key=${process.env.REACT_APP_FIXER_API_KEY}&symbols=${preferredCurrency}`);
-                const responseJSON = await response.json();
-                const exchangeRate = responseJSON.rates[preferredCurrency];
-                setRate(exchangeRate);
+                try {
+                    const url = `https://api.exchangeratesapi.io/latest?symbols=${preferredCurrency}`;
+                    const response = await fetch(url);
+                    const responseJSON = await response.json();
+                    const exchangeRate = responseJSON.rates[preferredCurrency];
+                    setRate(exchangeRate);
+                } catch(err){
+                    console.log('Invalid exhange rate for API "exchangeratesapi", ', err);
+                    setRate(0);
+                }
+                
+            } else {
+                setRate(1);
             }
             setExpenseCostTotal(rate * total);
         }
@@ -378,7 +387,7 @@ const ExpensesSummary = ({ trip, expenses, classes }) => {
             >
                 <DialogTitle id="form-dialog-title">Change your summary currency</DialogTitle>
                 <DialogContent>
-                    <FormControl>
+                    <FormControl fullWidth>
                         <InputLabel htmlFor='currency'>Currency *</InputLabel>
                         <Select
                             value={preferredCurrency}
